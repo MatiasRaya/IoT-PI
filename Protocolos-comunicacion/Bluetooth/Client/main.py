@@ -1,12 +1,27 @@
 from network import Bluetooth
 from machine import Timer
+import ujson
+
+information = {
+    'posLat': 0,
+    'posLon': 0,
+    'battery': 0,
+}
 
 def char_notify_callback(char, arg):
     char_value = (char.value())
-    print("New value: {}".format(char_value))
+    pos = char_value.decode('utf-8').replace("'", '"')
+    information['posLat'] = ujson.loads(pos)['posLat']
+    information['posLon'] = ujson.loads(pos)['posLon']
+    information['battery'] = ujson.loads(pos)['battery']
+    print("Se recibio {}".format(information))
+    print("La latitud es: {}".format(information['posLat']))
+    print("La longitud es: {}".format(information['posLon']))
+    print("La bateria es: {}".format(information['battery']))
 
 bluetooth = Bluetooth()
-# bluetooth.init(antenna=Bluetooth.EXT_ANT)
+print('Bluetooth init')
+bluetooth.init(antenna=Bluetooth.EXT_ANT)
 print('Start scanning for BLE services')
 bluetooth.start_scan(-1)
 adv = None

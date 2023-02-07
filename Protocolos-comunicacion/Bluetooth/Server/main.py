@@ -22,9 +22,12 @@ py = Pycoproc(Pycoproc.PYTRACK)
 pySensor = Sensors(py)
 
 battery = 100
-position = pySensor.get_position().coordinates()
+position = {
+    'posLat': pySensor.get_position().coordinates()[0],
+    'posLon': pySensor.get_position().coordinates()[1],
+    'battery': battery
+}
 update = False
-
 
 def conn_cb(chr):
     events = chr.events()
@@ -54,7 +57,7 @@ bluetooth.set_advertisement(name='FiPy 45', manufacturer_data="Pycom", service_u
 bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
 bluetooth.advertise(True)
 
-srv1 = bluetooth.service(uuid=0xec00, isprimary=True,nbr_chars=1)
+srv1 = bluetooth.service(uuid=0xec00, isprimary=True,nbr_chars=2)
 
 chr1 = srv1.characteristic(uuid=0xec0e, value='read_from_here') #client reads from here
 chr1.callback(trigger=(Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_SUBSCRIBE_EVENT), handler=chr1_handler)
@@ -66,12 +69,17 @@ def update_handler(update_alarm):
     global update
     global position
     battery-=1
-    if battery == 1:
+    if battery == 0:
         battery = 100
-    position = pySensor.get_position().coordinates()
+    position['posLat'] = pySensor.get_position().coordinates()[0]
+    position['posLon'] = pySensor.get_position().coordinates()[1]
+    position['battery'] = battery
     if update:
-        print(position)
-        chr1.value(str(position))
+        if position['posLat'] == None:
+            print(position['posLat'])
+        else:
+            print(position)
+            chr1.value(str(position))
 
 update_alarm = Timer.Alarm(update_handler, 1, periodic=True)
 

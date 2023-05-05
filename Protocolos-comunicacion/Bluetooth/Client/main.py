@@ -1,54 +1,50 @@
+
 from network import Bluetooth
-from machine import Timer
-import ujson
+import binascii
+import time
+import pycom
 
-information = {
-    'posLat': 0,
-    'posLon': 0,
-    'battery': 0,
-}
+pycom.heartbeat(False)
 
-def char_notify_callback(char, arg):
-    char_value = (char.value())
-    pos = char_value.decode('utf-8').replace("'", '"')
-    information['posLat'] = ujson.loads(pos)['posLat']
-    information['posLon'] = ujson.loads(pos)['posLon']
-    information['battery'] = ujson.loads(pos)['battery']
-    print("Se recibio {}".format(information))
-    print("La latitud es: {}".format(information['posLat']))
-    print("La longitud es: {}".format(information['posLon']))
-    print("La bateria es: {}".format(information['battery']))
+bt = Bluetooth()
+bt.start_scan(-1)
 
-bluetooth = Bluetooth()
-print('Bluetooth init')
-bluetooth.init(antenna=Bluetooth.EXT_ANT)
-print('Start scanning for BLE services')
-bluetooth.start_scan(-1)
-adv = None
-while(True):
-    adv = bluetooth.get_adv()
+while True:
+    adv = bt.get_adv()
     if adv:
-        try:
-            print(bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL))
-            if bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL)=="FiPy 45":
-                conn = bluetooth.connect(adv.mac)
-                print("Connected to FiPy 45")
-                try:
-                    services = conn.services()
-                    for service in services:
-                        chars = service.characteristics()
-                        for char in chars:
-                            c_uuid = char.uuid()
-                            print(c_uuid == 0xec0e)
-                            if c_uuid == 0xec0e:
-                                if (char.properties() & Bluetooth.PROP_NOTIFY):
-                                    print(c_uuid)
-                                    char.callback(trigger=Bluetooth.CHAR_NOTIFY_EVENT, handler=char_notify_callback)
-                                    break
-                except:
-                    continue
-        except:
-            continue
+        # try to get the complete name
+        print(bt.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL))
 
-bluetooth.stop_scan()
-bluetooth.disconnect_client()
+        # try to get the manufacturer data (Apple's iBeacon data is sent here)
+        mfg_data = bt.resolve_adv_data(adv.data, Bluetooth.ADV_MANUFACTURER_DATA)
+
+        if mfg_data:
+            # try to get the manufacturer data (Apple's iBeacon data is sent here)
+            print(binascii.hexlify(mfg_data))
+
+        if bt.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL) == 'LoPy':
+            conn = bt.connect(adv.mac)
+            services = conn.services()
+            for service in services:
+                time.sleep(0.050)
+                if type(service.uuid()) == bytes:
+                    print('Reading chars from service = {}'.format(service.uuid()))
+                else:
+                    print('Reading chars from service1 = %x' % service.uuid())
+                chars = service.characteristics()
+                for char in chars:
+                    if (char.properties() & Bluetooth.PROP_READ):
+                        print('char {} value = {}'.format(char.uuid(), char.read()))
+                        pycom.rgbled(0x7f0000)
+                        time.sleep(2)
+                        pycom.rgbled(0x000000)
+                    if (char.properties() & Bluetooth.PROP_WRITE):
+                        # print('char {} value = {}'.format(char.uuid(), char.read()))
+                        char.write("hola mundo")
+                        pycom.rgbled(0x007f00)
+                        time.sleep(2)
+                        pycom.rgbled(0x000000)
+            conn.disconnect()
+            break
+    else:
+        time.sleep(0.050)

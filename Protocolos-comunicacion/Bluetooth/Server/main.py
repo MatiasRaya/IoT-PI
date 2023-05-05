@@ -1,86 +1,49 @@
 from network import Bluetooth
-from machine import Timer
-
-from sensors import Sensors
-from pycoproc_1 import Pycoproc
-
 import pycom
-
-red = 0x7f0000
-green = 0x007f00
-blue = 0x00007f
-yellow = 0x7f7f00
-white = 0x7f7f7f
-pink = 0x7f007f
-cian = 0x007f7f
-orange = 0xd35400
-none= 0x000000
+import time
 
 pycom.heartbeat(False)
 
-py = Pycoproc(Pycoproc.PYTRACK)
-pySensor = Sensors(py)
-
-battery = 100
-position = {
-    'posLat': pySensor.get_position().coordinates()[0],
-    'posLon': pySensor.get_position().coordinates()[1],
-    'battery': battery
-}
-update = False
-
-def conn_cb(chr):
-    events = chr.events()
-    if events & Bluetooth.CLIENT_CONNECTED:
-        print('client connected')
-        pycom.rgbled(cian)
+def conn_cb (bt_o):
+    events = bt_o.events()
+    if  events & Bluetooth.CLIENT_CONNECTED:
+        pycom.rgbled(0x007f00) # green
+        print("Client connected")
+        time.sleep(5)
     elif events & Bluetooth.CLIENT_DISCONNECTED:
-        print('client disconnected')
-        pycom.rgbled(pink)
-        update = False
+        pycom.rgbled(0x7f0000) # red
+        char1.value(67)
+        time.sleep(5)
 
-def chr1_handler(chr, data):
-    global battery
-    global update
-    global position
-    events = chr.events()
-    print("events: ",events)
-    if events & (Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_SUBSCRIBE_EVENT):
-        print("transmitted :", position)
-        if (events & Bluetooth.CHAR_SUBSCRIBE_EVENT):
-            update = True
+def char1_cb_handler(chr, data):
+
+    # The data is a tuple containing the triggering event and the value if the event is a WRITE event.
+    # We recommend fetching the event and value from the input parameter, and not via characteristic.event() and characteristic.value()
+    events, value = data
+    if  events & Bluetooth.CHAR_WRITE_EVENT:
+        pycom.rgbled(0x00007f) # blue
+        print("Write request with value = {}".format(value))
+        time.sleep(5)
+    else:
+        pycom.rgbled(0x7f7f00) # yellow
+        print('Read request on char 1')
+
+def char2_cb_handler(chr, data):
+    # The value is not used in this callback as the WRITE events are not processed.
+    events, value = data
+    if  events & Bluetooth.CHAR_READ_EVENT:
+        pycom.rgbled(0x7f3f00) # orange
+        print('Read request on char 2')
 
 bluetooth = Bluetooth()
-bluetooth.init(antenna=Bluetooth.EXT_ANT)
-bluetooth.set_advertisement(name='FiPy 45', manufacturer_data="Pycom", service_uuid=0xec00)
-
+bluetooth.set_advertisement(name='LoPy')
 bluetooth.callback(trigger=Bluetooth.CLIENT_CONNECTED | Bluetooth.CLIENT_DISCONNECTED, handler=conn_cb)
 bluetooth.advertise(True)
 
-srv1 = bluetooth.service(uuid=0xec00, isprimary=True,nbr_chars=2)
+srv1 = bluetooth.service(uuid=0xec00, isprimary=True)
+chr1 = srv1.characteristic(uuid=0xec0e, value="Hola desde el server")
+char1= chr1.callback(trigger=Bluetooth.CHAR_WRITE_EVENT | Bluetooth.CHAR_READ_EVENT, handler=char1_cb_handler)
 
-chr1 = srv1.characteristic(uuid=0xec0e, value='read_from_here') #client reads from here
-chr1.callback(trigger=(Bluetooth.CHAR_READ_EVENT | Bluetooth.CHAR_SUBSCRIBE_EVENT), handler=chr1_handler)
-
-print('Start BLE service')
-
-def update_handler(update_alarm):
-    global battery
-    global update
-    global position
-    battery-=1
-    if battery == 0:
-        battery = 100
-    position['posLat'] = pySensor.get_position().coordinates()[0]
-    position['posLon'] = pySensor.get_position().coordinates()[1]
-    position['battery'] = battery
-    if update:
-        if position['posLat'] == None:
-            print(position['posLat'])
-        else:
-            print(position)
-            chr1.value(str(position))
-
-update_alarm = Timer.Alarm(update_handler, 1, periodic=True)
-
-pycom.rgbled(blue)
+# srv2 = bluetooth.service(uuid=1234, isprimary=True)
+# chr2 = srv2.characteristic(uuid=4567, value=0x1234)
+# char2_cb = chr2.callback(trigger=Bluetooth.CHAR_READ_EVENT, handler=char2_cb_handler)

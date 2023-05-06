@@ -145,6 +145,6 @@ if response:
 else:
     # Se imprime un mensaje de error
     print('Error al obtener la version del firmware.')
-
+    
 # Se apaga el modem LTE
 lte.deinit()

@@ -110,5 +110,41 @@ else:
     # Se imprime un mensaje de error
     print('Error al obtener el estado de la conexion.')
 
+# Se obtiene el nombre del fabricante
+response = lte.send_at_cmd('AT+CGMI')
+# Se verifica que la respuesta no sea vacia
+if response:
+    # Se obtiene el nombre del fabricante
+    manufacturer_name = response.rstrip()[:-2].strip()
+    # Se imprime el nombre del fabricante
+    print('Manufacturer Name: {}'.format(manufacturer_name))
+else:
+    # Se imprime un mensaje de error
+    print('Error al obtener el nombre del fabricante.')
+
+# Se obtiene el modelo del dispositivo
+response = lte.send_at_cmd('AT+CGMM')
+# Se verifica que la respuesta no sea vacia
+if response:
+    # Se obtiene el modelo del dispositivo
+    model = response.rstrip()[:-2].strip()
+    # Se imprime el modelo del dispositivo
+    print('Model: {}'.format(model))
+else:
+    # Se imprime un mensaje de error
+    print('Error al obtener el modelo del dispositivo.')
+
+# Se obtiene la version del firmware
+response = lte.send_at_cmd('AT+CGMR')
+# Se verifica que la respuesta no sea vacia
+if response:
+    # Se obtiene la version del firmware
+    firmware_version = response.rstrip()[:-2].strip()
+    # Se imprime la version del firmware
+    print('Firmware Version: {}'.format(firmware_version))
+else:
+    # Se imprime un mensaje de error
+    print('Error al obtener la version del firmware.')
+
 # Se apaga el modem LTE
 lte.deinit()

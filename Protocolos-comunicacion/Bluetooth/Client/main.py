@@ -1,4 +1,3 @@
-
 from network import Bluetooth
 import binascii
 import time
@@ -11,30 +10,31 @@ pycom.heartbeat(False)
 device_name = 'FiPy'
 
 # Se configura el Bluetooth
-bt = Bluetooth()
-
+bluetooth = Bluetooth()
+# Se configura la antena externa
+bluetooth.init(antenna=Bluetooth.EXT_ANT)
 # Se inicia a escanear por tiempo indefinido
-bt.start_scan(-1)
+bluetooth.start_scan(-1)
 
 # Se inicia un bucle infinito
 while True:
     # Se obtinen los datos del dispositivo que se esta publicitando
-    adv = bt.get_adv()
+    adv = bluetooth.get_adv()
 
     # Se comprueba que se hayan obtenido datos
     if adv:
         # Se obtiene el fabricante del dispositivo
-        mfg_data = bt.resolve_adv_data(adv.data, Bluetooth.ADV_MANUFACTURER_DATA)
+        mfg_data = bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_MANUFACTURER_DATA)
 
         # Se verifica que se haya obtenido el fabricante
-        if mfg_data:
+        if mfg_data == "Pycom":
             # Se imprime el fabricante
-            print('mfg_data = {}'.format(binascii.hexlify(mfg_data)))
+            print('mfg_data = {}'.format(mfg_data))
 
         # Se obtiene el nombre del dispositivo y se verifica que sea el correcto
-        if bt.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL) == device_name:
+        if bluetooth.resolve_adv_data(adv.data, Bluetooth.ADV_NAME_CMPL) == device_name:
             # Se conecta al dispositivo
-            conn = bt.connect(adv.mac)
+            conn = bluetooth.connect(adv.mac)
 
             # Se obtienen los servicios del dispositivo
             services = conn.services()
@@ -57,8 +57,21 @@ while True:
 
                 # Se recorren las caracteristicas
                 for char in chars:
+                    # Se verifica que el tipo de la caracteristica sea de escritura
+                    if (char.properties() & Bluetooth.PROP_WRITE):
+                        # Se almacena el texto ingresado por el usuario
+                        text = input("Ingrese el texto a enviar: ")
+                        # Se escribe en la caracteristica
+                        char.write(text)
+                        # Se enciende el led verde de la placa
+                        pycom.rgbled(0x007f00)
+                        # Se espera 2 segundos
+                        time.sleep(2)
+                        # Se apaga el led verde de la placa
+                        pycom.rgbled(0x000000)
+                    
                     # Se verifica que el tipo de la caracteristica sea de lectura
-                    if (char.properties() & Bluetooth.PROP_READ):
+                    if (char.properties() & (Bluetooth.PROP_NOTIFY | Bluetooth.PROP_READ)):
                         # Se imprime el uuid de la caracteristica y lo que se lee de ella
                         print('char {} value = {}'.format(char.uuid(), char.read()))
                         # Se enciende el led rojo de la placa
@@ -66,17 +79,6 @@ while True:
                         # Se espera 2 segundos
                         time.sleep(2)
                         # Se apaga el led rojo de la placa
-                        pycom.rgbled(0x000000)
-
-                    # Se verifica que el tipo de la caracteristica sea de escritura
-                    if (char.properties() & Bluetooth.PROP_WRITE):
-                        # Se escribe en la caracteristica
-                        char.write("hola mundo")
-                        # Se enciende el led verde de la placa
-                        pycom.rgbled(0x007f00)
-                        # Se espera 2 segundos
-                        time.sleep(2)
-                        # Se apaga el led verde de la placa
                         pycom.rgbled(0x000000)
 
             # Se desconecta del dispositivo

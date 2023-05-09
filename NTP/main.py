@@ -6,7 +6,7 @@ import connection
 connection = connection.Connection()
 
 # Se llama al método wifi_connection
-connection.wifi_connection()
+connection.wifi_connection('RAYADOS 2.4', 'Rayaplasencia1996')
 
 # Se crea una instancia de la clase RTC
 rtc = machine.RTC()

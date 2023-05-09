@@ -12,7 +12,7 @@ class Connection:
         self.bt = Bluetooth()
     
     # Se crea el método wifi_connection
-    def wifi_connection(self):
+    def wifi_connection(self, ssid, password):
         # Se configura la antena externa
         self.wlan.antenna(WLAN.EXT_ANT)
         # Se escanean las redes disponibles
@@ -20,39 +20,11 @@ class Connection:
         # Se recorren las redes disponibles
         for net in nets:
             # Se verifica si la red es la que se desea conectar
-            if net.ssid == "LCD":
+            if net.ssid == ssid:
                 # Se imprime un mensaje de que se encontró la red
                 print('Network found!')
                 # Se conecta a la red
-                self.wlan.connect('LCD', auth=(WLAN.WPA2, '1cdunc0rd0ba'))
-                # Se espera a que se conecte
-                while not self.wlan.isconnected():
-                    # Se pone en modo idle para ahorrar energía
-                    machine.idle()
-                # Se imprime un mensaje de que se conectó
-                print('WLAN connection succeeded!')
-                # Se sale del bucle
-                break
-            # Se verifica si la red es la que se desea conectar
-            elif net.ssid == "LCD-IoT":
-                # Se imprime un mensaje de que se encontró la red
-                print('Network found!')
-                # Se conecta a la red
-                self.wlan.connect('LCD-IoT', auth=(WLAN.WPA2, '107_1AbCd'))
-                # Se espera a que se conecte
-                while not self.wlan.isconnected():
-                    # Se pone en modo idle para ahorrar energía
-                    machine.idle()
-                # Se imprime un mensaje de que se conectó
-                print('WLAN connection succeeded!')
-                # Se sale del bucle
-                break
-            # Se verifica si la red es la que se desea conectar
-            elif net.ssid == "RAYADOS 2.4":
-                # Se imprime un mensaje de que se encontró la red
-                print('Network found!')
-                # Se conecta a la red
-                self.wlan.connect('RAYADOS 2.4', auth=(WLAN.WPA2, 'Rayaplasencia1996'))
+                self.wlan.connect(ssid, auth=(WLAN.WPA2, password))
                 # Se espera a que se conecte
                 while not self.wlan.isconnected():
                     # Se pone en modo idle para ahorrar energía

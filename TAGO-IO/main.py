@@ -13,7 +13,7 @@ connection.wifi_connection('RAYADOS 2.4', 'Rayaplasencia1996')
 variable = 'bt'
 device = '64594d59d5e9a200092b7ce1'
 sort = '-time'
-qty = '10'
+qty = '1'
 
 # Se configura la URL del servicio de TagoIO con los parámetros de la variable y el dispositivo
 url = "https://api.tago.io/data?variable={}&device={}&sort={}&qty={}".format(variable, device, sort, qty)

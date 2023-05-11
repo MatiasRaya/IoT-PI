@@ -80,3 +80,19 @@ response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
 
 # Se imprime la respuesta
 print(response.text)
+
+# Se configura el payload
+payload = {
+    'variable': 'position',
+    'value': '1',
+    'location': {
+        'lat': 25.651,
+        'lng': -100.289
+    }
+}
+
+# Se realiza la petición HTTP POST
+response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
+
+# Se imprime la respuesta
+print(response.text)

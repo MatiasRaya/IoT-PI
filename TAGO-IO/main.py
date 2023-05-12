@@ -62,39 +62,39 @@ time_gmt3_str = "{:02d}/{:02d}/{:04d} {:02d}:{:02d}:{:02d}".format(time_gmt3_tup
 # Se imprime la cadena de tiempo
 print(time_gmt3_str)
 
-# # Se configura el payload
-# payload = {
-#     'variable': 'bt',
-#     'value': False
-# }
+# Se configura el payload
+payload = {
+    'variable': 'bt',
+    'value': False
+}
 
-# # Se configuran los headers
-# headers = {
-#     'Content-Type': 'application/json',
-#     'device-token': '5ece922f-1549-4bfe-b2c8-616097edcec6'
-# }
+# Se configuran los headers
+headers = {
+    'Content-Type': 'application/json',
+    'device-token': '5ece922f-1549-4bfe-b2c8-616097edcec6'
+}
 
-# # Se configura la URL del servicio de TagoIO
-# url = "https://api.tago.io/data"
+# Se configura la URL del servicio de TagoIO
+url = "https://api.tago.io/data"
 
-# # Se realiza la petición HTTP POST
-# response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
+# Se realiza la petición HTTP POST
+response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
 
-# # Se imprime la respuesta
-# print(response.text)
+# Se imprime la respuesta
+print(response.text)
 
-# # Se configura el payload
-# payload = {
-#     'variable': 'position',
-#     'value': '1',
-#     'location': {
-#         'lat': 25.651,
-#         'lng': -100.289
-#     }
-# }
+# Se configura el payload
+payload = {
+    'variable': 'position',
+    'value': '1',
+    'location': {
+        'lat': 25.651,
+        'lng': -100.289
+    }
+}
 
-# # Se realiza la petición HTTP POST
-# response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
+# Se realiza la petición HTTP POST
+response = urequests.post(url, headers=headers, data=ujson.dumps(payload))
 
-# # Se imprime la respuesta
-# print(response.text)
+# Se imprime la respuesta
+print(response.text)

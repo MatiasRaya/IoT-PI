@@ -12,6 +12,7 @@ connection.wifi_connection('RAYADOS 2.4', 'Rayaplasencia1996')
 rtc = machine.RTC()
 
 # Se sincroniza el RTC con el NTP
+# rtc.ntp_sync("ar.pool.ntp.org", update_period=15)
 rtc.ntp_sync("pool.ntp.org", update_period=15)
 
 # Se espera a que el RTC se sincronice

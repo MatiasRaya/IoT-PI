@@ -1,5 +1,5 @@
 from network import Bluetooth
-import binascii
+import gc
 import time
 import pycom
 
@@ -8,6 +8,31 @@ pycom.heartbeat(False)
 
 # Se configura el nombre del dispositivo
 device_name = 'FiPy'
+
+gc.enable()
+
+def callback(char, data):
+    try:
+        # Se enciende el led rojo de la placa
+        pycom.rgbled(0x7f0000)
+        # Se espera 1 segundo
+        time.sleep(1)
+        # Se apaga el led rojo de la placa
+        pycom.rgbled(0x000000)
+        # Se imprime en consola el valor recibido
+        print("Write request with value = {}".format(char.value()))
+        # Se almacena el texto ingresado por el usuario
+        text = input("Ingrese el texto a enviar: ")
+        # Se imprime por pantalla el tamaño del texto
+        print("Sending message of size {}".format(len(text)))
+        # Se escribe en la caracteristica
+        char.write(text)
+        print("Message sent")
+        # Se libera memoria
+        gc.collect()
+    except Exception as e:
+        # Se imprime el error
+        print("Error: {}".format(e))
 
 # Se configura el Bluetooth
 bluetooth = Bluetooth()
@@ -41,8 +66,6 @@ while True:
 
             # Se recorren los servicios
             for service in services:
-                # Se espera 50 milisegundos
-                time.sleep(0.050)
 
                 # Se verifica que el tipo de dato sea bytes
                 if type(service.uuid()) == bytes:
@@ -57,34 +80,13 @@ while True:
 
                 # Se recorren las caracteristicas
                 for char in chars:
-                    # Se verifica que el tipo de la caracteristica sea de escritura
-                    if (char.properties() & Bluetooth.PROP_WRITE):
-                        # Se almacena el texto ingresado por el usuario
-                        text = input("Ingrese el texto a enviar: ")
-                        # Se escribe en la caracteristica
-                        char.write(text)
-                        # Se enciende el led verde de la placa
-                        pycom.rgbled(0x007f00)
-                        # Se espera 2 segundos
-                        time.sleep(2)
-                        # Se apaga el led verde de la placa
-                        pycom.rgbled(0x000000)
-                    
-                    # Se verifica que el tipo de la caracteristica sea de lectura
-                    if (char.properties() & (Bluetooth.PROP_NOTIFY | Bluetooth.PROP_READ)):
-                        # Se imprime el uuid de la caracteristica y lo que se lee de ella
-                        print('char {} value = {}'.format(char.uuid(), char.read()))
-                        # Se enciende el led rojo de la placa
-                        pycom.rgbled(0x7f0000)
-                        # Se espera 2 segundos
-                        time.sleep(2)
-                        # Se apaga el led rojo de la placa
-                        pycom.rgbled(0x000000)
+                    # Se verifica que el uuid de la caracteristica sea el correcto
+                    if(char.uuid() == 0xec0e):
+                        if(char.properties() & Bluetooth.PROP_NOTIFY):
+                            char.callback(trigger=Bluetooth.CHAR_NOTIFY_EVENT, handler=callback)
+                            print("Se ha configurado la notificacion")
+                            break
 
-            # Se desconecta del dispositivo
-            conn.disconnect()
-            # Se detiene el escaneo
-            break
     else:
         # Se espera 50 milisegundos
         time.sleep(0.050)

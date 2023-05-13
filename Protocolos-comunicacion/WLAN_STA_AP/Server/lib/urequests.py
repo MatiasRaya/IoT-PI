@@ -1,6 +1,5 @@
 import usocket
 
-
 class Response:
     def __init__(self, f):
         self.raw = f

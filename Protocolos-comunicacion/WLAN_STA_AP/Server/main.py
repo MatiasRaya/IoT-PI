@@ -1,5 +1,8 @@
 from connection import WiFi
+import uping
 import usocket
+import utime
+
 
 # Se crea un objeto de la clase WiFi
 wifi = WiFi()
@@ -31,7 +34,7 @@ while True:
     client, addr = s.accept()
 
     # Se imprime un mensaje de que se conectó un cliente y su addr
-    print("Client connect of", addr)
+    print("Client connect of", addr[0])
 
     # Se recibe la información del cliente
     data = client.recv(1024)
@@ -40,13 +43,21 @@ while True:
     if not data:
         break
     
-    # Se imprime la información recibida
-    print("Message: ", data.decode("utf-8"))
+    msg = data.decode("utf-8")
 
-    # Se ingresa una respuesta por teclado
-    response = input("Response: ")
+    # Se imprime la información recibida
+    print("Message: ", msg)
+
+    # Se hace un ping a la dirección IP recibida
+    response = uping.ping(msg, count=10)[1]
+
+    # Se imprime la respuesta del ping
+    print(response)
+
+    # # Se ingresa una respuesta por teclado
+    # response = input("Response: ")
     # Se envía la respuesta al cliente
-    client.send(response.encode())
+    client.send(str(response).encode())
 
 # Se cierra el socket
 client.close()

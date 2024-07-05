@@ -1,0 +1,20 @@
+[General]
+version = 1.0
+name = Tesis
+
+[Settings]
+debug = true
+timeout = 30
+
+[Log]
+fileName = app.log
+directoryName = log
+maxFileSize = 90
+maxNumberFiles = 5
+
+[LTE]
+company = claro
+
+[NTP]
+update_period = 15
+timezone = -3

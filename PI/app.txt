@@ -16,5 +16,6 @@ maxNumberFiles = 5
 company = claro
 
 [NTP]
+ntp_server = pool.ntp.org
 update_period = 15
 timezone = -3

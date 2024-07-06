@@ -4,7 +4,7 @@ import machine
 # Se crea la clase NTP
 class NTP:
     # Se crea el constructor de la clase
-    def __init__(self, ntp_server, update_period, timezone):
+    def __init__(self):
         # Se crea un objeto RTC
         self.rtc = machine.RTC()
         

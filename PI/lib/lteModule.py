@@ -12,6 +12,7 @@ class Lte:
     def attach(self, empresa):
         # Se inicializa el modem LTE
         self.lte.init()
+        
         # Se verifica que la empresa sea claro o personal
         if empresa == "claro":
             # Se conecta a la red LTE
@@ -19,12 +20,15 @@ class Lte:
         elif empresa == "personal":
             # Se conecta a la red LTE
             self.lte.attach(band=28, apn="datos.personal.com")
+        
         # Se impirme un mensaje con la empresa
         print('Conectando a la red LTE de ' + empresa)
+        
         # Se consulta hasta que se conecte a la red
         while not self.lte.isattached():
             # Se espera 0.25 segundos
             time.sleep(0.25)
+        
         # Se imprime que se encendio la antena LTE
         print('Antena LTE encendida')
 
@@ -32,6 +36,7 @@ class Lte:
     def detach(self):
         # Se desconecta de la red LTE
         self.lte.detach()
+        
         # Se imprime que se apago la antena LTE
         print('Antena LTE apagada')
 
@@ -39,10 +44,12 @@ class Lte:
     def connect(self):
         # Se conecta a la red LTE
         self.lte.connect()
+        
         # Se consulta hasta que se conecte a la red
         while not self.lte.isconnected():
             # Se espera 0.25 segundos
             time.sleep(0.25)
+        
         # Se imprime que se conecto a la red LTE
         print('Conectado a la red LTE')
 
@@ -50,6 +57,7 @@ class Lte:
     def disconnect(self):
         # Se desconecta de la red LTE
         self.lte.disconnect()
+        
         # Se imprime que se desconecto de la red LTE
         print('Desconectado de la red LTE')
 
@@ -57,6 +65,7 @@ class Lte:
     def getRssi(self):
         # Se ejecuta el comando para obtener el RSSI
         response = self.lte.send_at_cmd('AT+CSQ')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se parsea la respuesta para obtener el RSSI
@@ -71,6 +80,7 @@ class Lte:
     def getImei(self):
         # Se ejecuta el comando para obtener el IMEI
         response = self.lte.send_at_cmd('AT+CGSN')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se parsea la respuesta para obtener el IMEI
@@ -85,6 +95,7 @@ class Lte:
     def getIp(self):
         # Se ejecuta el comando para obtener la IP
         response = self.lte.send_at_cmd('AT+CGPADDR')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se parsea la respuesta para obtener la IP
@@ -99,16 +110,20 @@ class Lte:
     def getRegistration(self):
         # Se ejecuta el comando para agregar informacion de registro
         response = self.lte.send_at_cmd('AT+CREG=2')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene la respuesta del comando
             response = response.strip()
+            
             # Se verifica si se agrego la informacion de registro
             if response == 'OK':
                 # Se imprime que se agrego la informacion de registro
                 print('Se agrego informacion de registro')
+                
                 # Se ejecuta el comando para obtener el registro
                 response = self.lte.send_at_cmd('AT+CREG?')
+                
                 # Se verifica que la respuesta no sea vacia
                 if response:
                     # Se obtiene la informacion del registro
@@ -180,15 +195,13 @@ class Lte:
                     print('Error al obtener el registro')
             else:
                 # Se imprime que hubo un error al agregar informacion de registro
-                print('Error al agregar informacion de registro')
-        # Se retorna None
-        return None
-        
+                print('Error al agregar informacion de registro')        
 
     # Se crea el metodo que retorna el operador
     def getOperator(self):
         # Se ejecuta el comando para obtener el operador
         response = self.lte.send_at_cmd('AT+COPS=?')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene el nombre del operador
@@ -203,6 +216,7 @@ class Lte:
     def getPhoneNumber(self):
         # Se ejecuta el comando para obtener el numero de telefono
         response = self.lte.send_at_cmd('AT+CNUM')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene el numero de telefono
@@ -217,6 +231,7 @@ class Lte:
     def getConnectionStatus(self):
         # Se ejecuta el comando para obtener el estado de la conexion
         response = self.lte.send_at_cmd('AT+CGATT?')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene el estado de la conexion
@@ -238,6 +253,7 @@ class Lte:
     def getModel(self):
         # Se ejecuta el comando para obtener el modelo del dispositivo
         response = self.lte.send_at_cmd('AT+CGMM')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene el modelo del dispositivo
@@ -253,6 +269,7 @@ class Lte:
     def getManufacturer(self):
         # Se ejecuta el comando para obtener el nombre del fabricante
         response = self.lte.send_at_cmd('AT+CGMI')
+        
         # Se verifica que la respuesta no sea vacia
         if response:
             # Se obtiene el nombre del fabricante

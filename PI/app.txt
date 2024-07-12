@@ -15,6 +15,11 @@ maxNumberFiles = 5
 [LTE]
 company = claro
 
+[WIFI]
+ssid = Marga
+password = Milanesa6124
+ap_ssid = Prueba
+
 [NTP]
 ntp_server = pool.ntp.org
 update_period = 15

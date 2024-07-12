@@ -10,18 +10,29 @@ class Wifi:
 
         # Se verifica que modo se quiere configurar, si se quiere configurar como STA_AP o como STA y se crea una instancia de tal
         if mode == 'STA':
+            print('STA')
             self.wlan = WLAN(mode=WLAN.STA)
         elif mode == 'STA_AP':
+            print('STA_AP')
             self.wlan = WLAN(mode=WLAN.STA_AP, ssid=ap_ssid)
         # Se configura la antena exterior
         self.wlan.antenna(WLAN.EXT_ANT)
 
+    def scan(self):
+        # Se escanea las redes WiFi disponibles
+        nets = self.wlan.scan()
+        # Se imprime la lista de redes WiFi disponibles
+        print(nets)
+
     # Se crea el metodo para conectarse a la red WiFi
     def wifi_connect(self, ssid, password):
+        print('ssid: ', ssid)
+        print('password: ', password)
         # Se conecta a la red WiFi pasada por parametria
         self.wlan.connect(ssid, auth=(WLAN.WPA2, password), timeout=100000)
         # Se consulta hasta que se conecte a la red
         while not self.wlan.isconnected():
+            print('Conectando a la red WiFi...')
             # Se espera 0.25 segundos
             time.sleep(0.25)
 

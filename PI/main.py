@@ -4,71 +4,35 @@ from rotatingLogger import RotatingLogger
 from ntpModule import NTP
 from configModule import ConfigModule
 from ledModule import LedModule
-
-from ftpadvanced import AdvancedFTP
+from ftpModule import Ftp
+from thingsboardModule import Thingsboard
 
 wifi = Wifi('pruebaAP', 'STA')
 wifi.scan()
 wifi.wifi_connect('Marga', 'Milanesa6124')
 
-ftp = AdvancedFTP('192.168.1.180', 21)
-ftp.login('ftpuser', 'ftpuser')
-files = ftp.nlst()
-print(files)
+thingsboard = Thingsboard('192.168.1.180', 9090)
+token = thingsboard.getAuthToken('tenant@thingsboard.org', 'tenant')
+print(token)
+device = thingsboard.getDeviceData(token, "8d0b7900-34e1-11ef-9fcb-c39c20a6cc8b")
+print(device)
+data = {
+    "phone number": "1234567890"
+}
+response = thingsboard.postDeviceData(token, "8d0b7900-34e1-11ef-9fcb-c39c20a6cc8b", data)
+print(response)
 
-filename = 'prueba.txt'
+# ftp = Ftp('192.168.1.180', 21, 'ftpuser', 'ftpuser')
+# files = ftp.list_files()
+# print(files)
 
-with open(filename, 'wb') as file:
-    ftp.retrbinary('RETR ' + filename, file.write)
+# filename = 'prueba.txt'
 
-filename2 = 'prueba.py'
-with open(filename2, 'wb') as file:
-    ftp.retrbinary('RETR ' + filename2, file.write)
+# ftp.download_file(filename)
 
-ftp.quit()
+# filename2 = 'app.txt'
 
-print('Archivo descargado')
-
-# Se copia el archivo descargado a la SD
-
-import os
-import machine
-
-# Se crea un objeto de la clase machine para acceder a la tarjeta SD
-sd = machine.SD()
-
-# Se monta la tarjeta SD
-os.mount(sd, '/sd')
-
-dirs = os.listdir('/sd')
-
-print(dirs)
-
-destination_dir = '/sd/'
-
-try:
-    with open(filename, 'rb') as src_file:
-        with open(destination_dir + filename, 'wb') as dest_file:
-            while True:
-                buf = src_file.read(1024)
-                if not buf:
-                    break
-                dest_file.write(buf)
-    print("Archivo copiado a '{}{}' exitosamente.".format(destination_dir, filename))
-except OSError as e:
-    print("No se pudo copiar el archivo: {}".format(e))
-
-try:
-    with open(filename2, 'rb') as src_file:
-        with open(destination_dir + filename2, 'wb') as dest_file:
-            while True:
-                buf = src_file.read(1024)
-                if not buf:
-                    break
-                dest_file.write(buf)
-    print("Archivo copiado a '{}{}' exitosamente.".format(destination_dir, filename2))
-except OSError as e:
-    print("No se pudo copiar el archivo: {}".format(e))
+# ftp.upload_file(filename2)
     
 # # Se crea una instancia de la clase LedModule
 # ledModule = LedModule()

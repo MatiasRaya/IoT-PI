@@ -1,0 +1,3 @@
+apn=igprs.claro.com.ar
+apn=datos.personal.com
+serial=1234567890

@@ -28,11 +28,14 @@
 #define MODEM_GPS_ENABLE_GPIO               (4)
 #define MODEM_GPS_ENABLE_LEVEL              (1)
 
-#define TINY_GSM_RX_BUFFER          1024 // Set RX buffer to 1Kb
+#define TINY_GSM_RX_BUFFER                  1024 // Set RX buffer to 1Kb
 
 #define TINY_GSM_MODEM_SIM7672
 
-#define NETWORK_APN     "igprs.claro.com.ar"             // Claro Argentina
+#define NETWORK_APN                         "igprs.claro.com.ar" // Claro Argentina
+
+#define NETWORK_SSID                       "iotPrueba"
+#define NETWORK_PSK                        "123456789"
 
 // // See all AT commands, if wanted
 // #define DUMP_AT_COMMANDS
@@ -42,9 +45,10 @@
 #include <TinyGsmClient.h>
 #include <StreamDebugger.h>
 #include <ArduinoHttpClient.h>
-
-// It depends on the operator whether to set up an APN. If some operators do not set up an APN,
-// they will be rejected when registering for the network. You need to ask the local operator for the specific APN.
-// APNs from other operators are welcome to submit PRs for filling.
-// #define NETWORK_APN     "igprs.claro.com.ar"             //CHN-CT: China Telecom
-// #define NETWORK_APN     "datos.personal.com"             //CHN-CT: China Telecom
+#include <stdarg.h>
+#include <FS.h>
+#include <SD.h>
+#include <SPI.h>
+#include <LittleFS.h>
+#include <WiFi.h>
+#include <ESP32Ping.h>

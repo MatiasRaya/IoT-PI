@@ -2,6 +2,7 @@
 #include "logger/logger.h"
 #include "sd/sd.h"
 #include "config/config.h"
+#include "rtc/rtc.h"
 #include "utilities.h"
 
 #define classNAME "main"
@@ -52,6 +53,17 @@ void setup()
 
     Config cfg = readConfig();
     LOG_INFO(classNAME, "SN: %s, APN: %s, SSID: %s", cfg.sn.c_str(), cfg.apn.c_str(), cfg.ssid.c_str());
+
+    if(!initRTC()) {
+        // Serial.println("RTC initialization failed");
+        LOG_ERROR(classNAME, "RTC initialization failed");
+    } else {
+        // Serial.println("RTC initialized successfully");
+        LOG_INFO(classNAME, "RTC initialized successfully");
+
+        String dateTime = getRTCDateTime();
+        LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
+    }
 
     bool enableGSM = true, enableWiFi = true;
 

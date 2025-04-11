@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rtc/rtc.h"
 #include "utilities.h"
 
 enum LogLevel {
@@ -11,6 +12,7 @@ enum LogLevel {
 
 void logf(LogLevel level, const char *tag, const char *func, const char *format, ...);
 void enableSD(bool enable);
+void setLogLimits(int maxFiles, int maxSizeMB);
 
 #define LOG_INFO(tag, fmt, ...)  logf(LOG_INFO, tag, __func__, fmt, ##__VA_ARGS__)
 #define LOG_WARN(tag, fmt, ...)  logf(LOG_WARN, tag, __func__, fmt, ##__VA_ARGS__)

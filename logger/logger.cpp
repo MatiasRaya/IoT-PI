@@ -1,6 +1,8 @@
 #include "logger.h"
 
 bool enableSDLogging = false;
+int maxLogFiles = 5;
+int maxFileSizeMB = 1;
 
 const char* levelToString(LogLevel level) {
     switch (level) {
@@ -17,13 +19,59 @@ const char* levelToString(LogLevel level) {
     }
 }
 
-String getDateTime() {
-    // TODO: Reemplazar por lectura real del RTC
-    return "2025-04-09 22:15:00";
-}
-
 void enableSD(bool enable) {
     enableSDLogging = enable;
+}
+
+void setLogLimits(int maxFiles, int maxSizeMB) {
+    maxLogFiles = maxFiles;
+    maxFileSizeMB = maxSizeMB;
+}
+
+String formatLogFileName(time_t timestamp) {
+    struct tm *tm_info = localtime(&timestamp);
+    char buffer[32];
+    strftime(buffer, sizeof(buffer), "/log_%d%m%Y_%H%M%S.log", tm_info);
+    return String(buffer);
+}
+
+void rotateLogsIfNeeded() {
+    File logFile = SD.open("/log.txt");
+    if (!logFile) return;
+
+    if (logFile.size() > maxFileSizeMB * 1024 * 1024) {
+        logFile.close();
+
+        time_t now = time(nullptr);
+        String newName = formatLogFileName(now);
+
+        SD.rename("/log.txt", newName);
+
+        File root = SD.open("/");
+        std::vector<String> logFiles;
+
+        while (true) {
+            File entry = root.openNextFile();
+            if (!entry) break;
+
+            String name = entry.name();
+            if (name.startsWith("/log_") && name.endsWith(".log")) {
+                logFiles.push_back(name);
+            }
+            entry.close();
+        }
+
+        root.close();
+        
+        if (logFiles.size() >= maxLogFiles) {
+            std::sort(logFiles.begin(), logFiles.end());
+            for (int i = 0; i <= logFiles.size() - maxLogFiles; ++i) {
+                SD.remove(logFiles[i]);
+            }
+        }
+    } else {
+        logFile.close();
+    }
 }
 
 void logf(LogLevel level, const char *tag, const char *func, const char *format, ...) {
@@ -33,15 +81,16 @@ void logf(LogLevel level, const char *tag, const char *func, const char *format,
     vsnprintf(msg, sizeof(msg), format, args);
     va_end(args);
 
-    String timestamp = getDateTime();
+    String timestamp = getRTCDateTime();
     String finalMsg = String("[") + timestamp + "] [" + levelToString(level) + "] [" + tag + "] [" + func + "] " + msg + "\n";
 
     Serial.print(finalMsg);
 
-
     if (!enableSDLogging) {
         return;
     }
+
+    rotateLogsIfNeeded();
 
     File logFile = SD.open("/log.txt", FILE_APPEND);
     if (logFile) {

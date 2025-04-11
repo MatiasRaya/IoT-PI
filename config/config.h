@@ -8,6 +8,8 @@ struct Config {
     String apn;
     String ssid;
     String psk;
+    int maxFiles = 5;
+    int maxSizeMB = 1; 
 };
 
 Config readConfig();

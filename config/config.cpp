@@ -29,9 +29,19 @@ Config readConfig() {
             config.ssid = line.substring(5);
         } else if (line.startsWith("PSK=")) {
             config.psk = line.substring(4);
+        }else if (line.startsWith("NUMBER_FILES=")) {
+            config.maxFiles = line.substring(13).toInt();
+        } else if (line.startsWith("SIZE_FILES=")) {
+            config.maxSizeMB = line.substring(11).toInt();
         }
     }
 
     file.close();
+
+    if (config.maxFiles > 0 && config.maxSizeMB > 0) {
+        setLogLimits(config.maxFiles, config.maxSizeMB);
+        LOG_INFO(classNAME, "Log rotation config: %d files, %d MB each", config.maxFiles, config.maxSizeMB);
+    }
+
     return config;
 }

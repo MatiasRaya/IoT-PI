@@ -52,3 +52,7 @@
 #include <LittleFS.h>
 #include <WiFi.h>
 #include <ESP32Ping.h>
+#include <vector>
+#include <algorithm>
+#include <Wire.h>
+#include <RTClib.h>

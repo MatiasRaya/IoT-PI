@@ -2,3 +2,5 @@ SN=0001-00001
 APN=igprs.claro.com.ar
 SSID=Rayados
 PSK=Rayaplasencia1996
+NUMBER_FILES=5
+SIZE_FILES=100

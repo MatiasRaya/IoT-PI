@@ -5,7 +5,7 @@
 RTC_DS3231 rtc;
 
 bool initRTC() {
-    Wire.begin(1, 2);
+    Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     if (!rtc.begin()) {
         LOG_ERROR(classNAME, "Couldn't find RTC");
         return false;

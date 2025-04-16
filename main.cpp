@@ -12,8 +12,6 @@ void setup()
 {
     Serial.begin(MODEM_BAUDRATE);
 
-    // Serial.println("Start Sketch");
-
     SerialAT.begin(MODEM_BAUDRATE, SERIAL_8N1, MODEM_RX_PIN, MODEM_TX_PIN);
 
 #ifdef BOARD_POWERON_PIN
@@ -51,10 +49,8 @@ void setup()
     if(!initRTC()) {
         enableRTC(false);
 
-        // Serial.println("RTC initialization failed");
         LOG_ERROR(classNAME, "RTC initialization failed");
     } else {
-        // Serial.println("RTC initialized successfully");
         LOG_INFO(classNAME, "RTC initialized successfully");
 
         enableRTC(true);
@@ -66,7 +62,6 @@ void setup()
     LOG_INFO(classNAME, "SD initialized successfully");
 
     if (!LittleFS.begin()) {
-        // Serial.println("Error al montar LittleFS");
         LOG_ERROR(classNAME, "Failed to mount LittleFS");
     } else {
         LOG_INFO(classNAME, "LittleFS mounted successfully");
@@ -94,22 +89,18 @@ void setup()
     bool enableGSM = true, enableWiFi = true;
 
     if (cfg.apn.length() > 0) {
-        // Serial.println("APN configured, using custom APN");
         LOG_INFO(classNAME, "APN configured, using custom APN");
 
         enableGSM = initGSM(cfg.apn.c_str());
     } else {
-        // Serial.println("APN not configured, using default APN");
         LOG_INFO(classNAME, "APN not configured, using default APN");
 
         enableGSM = initGSM();
     }
 
     if (enableGSM) {
-        // Serial.println("GSM initialized successfully");
         LOG_INFO(classNAME, "GSM initialized successfully");
     } else {
-        // Serial.println("GSM initialization failed");
         LOG_ERROR(classNAME, "GSM initialization failed");
 
         enableGSM = false;
@@ -117,33 +108,31 @@ void setup()
         enableWiFi = false;
 
         if (cfg.ssid.length() > 0 && cfg.psk.length() > 0) {
-            // Serial.println("WiFi configured, using custom SSID and PSK");
+
             LOG_INFO(classNAME, "WiFi configured, using custom SSID and PSK");
 
             enableWiFi = initWiFi(cfg.ssid.c_str(), cfg.psk.c_str());
         } else {
-            // Serial.println("WiFi not configured, using default SSID and PSK");
+
             LOG_INFO(classNAME, "WiFi not configured, using default SSID and PSK");
 
             enableWiFi = initWiFi();
         }
 
         if (enableWiFi) {
-            // Serial.println("WiFi initialized successfully");
+
             LOG_INFO(classNAME, "WiFi initialized successfully");
         } else {
-            // Serial.println("WiFi initialization failed");
+
             LOG_ERROR(classNAME, "WiFi initialization failed");
         }
     }
 
     if (getToken()) {
-        // Serial.println("Token received successfully");
         LOG_INFO(classNAME, "Token received successfully");
 
         getDeviceData();
     } else {
-        // Serial.println("Failed to get token from Thingsboard");
         LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
     }
 }

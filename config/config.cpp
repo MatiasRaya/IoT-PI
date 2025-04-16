@@ -6,15 +6,15 @@ Config readConfig() {
     Config config;
 
     if (!LittleFS.begin()) {
-        // Serial.println("LittleFS mount failed");
         LOG_ERROR(classNAME, "LittleFS mount failed");
+        
         return config;
     }
 
     File file = LittleFS.open("/config.txt", "r");
     if (!file) {
-        // Serial.println("No se pudo abrir config.txt");
         LOG_ERROR(classNAME, "Could not open config.txt");
+        
         return config;
     }
 

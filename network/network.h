@@ -8,3 +8,5 @@ bool initGSM(const char* apn);
 
 bool initWiFi();
 bool initWiFi(const char* ssid, const char* psk);
+
+bool initGPS();

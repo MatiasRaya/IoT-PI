@@ -28,6 +28,9 @@
 #define MODEM_GPS_ENABLE_GPIO               (4)
 #define MODEM_GPS_ENABLE_LEVEL              (1)
 
+#define I2C_SDA_PIN                         (1)
+#define I2C_SCL_PIN                         (2)
+
 #define TINY_GSM_RX_BUFFER                  1024 // Set RX buffer to 1Kb
 
 #define TINY_GSM_MODEM_SIM7672

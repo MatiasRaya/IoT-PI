@@ -9,7 +9,12 @@ struct Config {
     String ssid;
     String psk;
     int maxFiles = 5;
-    int maxSizeMB = 1; 
+    int maxSizeMB = 1;
+    String url = "";
+    String port = "";
+    String deviceID = "";
+    String username = "";
+    String password = "";
 };
 
 Config readConfig();

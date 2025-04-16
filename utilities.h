@@ -31,11 +31,15 @@
 #define I2C_SDA_PIN                         (1)
 #define I2C_SCL_PIN                         (2)
 
+#define LED_RED_PIN                         (5)
+#define LED_GREEN_PIN                       (6)
+#define LED_BLUE_PIN                        (7)
+
 #define TINY_GSM_RX_BUFFER                  1024 // Set RX buffer to 1Kb
 
 #define TINY_GSM_MODEM_SIM7672
 
-#define NETWORK_APN                         "igprs.claro.com.ar" // Claro Argentina
+#define NETWORK_APN                        "igprs.claro.com.ar" // Claro Argentina
 
 #define NETWORK_SSID                       "iotPrueba"
 #define NETWORK_PSK                        "123456789"

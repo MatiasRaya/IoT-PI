@@ -3,6 +3,7 @@
 #include "sd/sd.h"
 #include "config/config.h"
 #include "rtc/rtc.h"
+#include "thingsboard/thingsboard.h"
 #include "utilities.h"
 
 #define classNAME "main"
@@ -33,13 +34,33 @@ void setup()
     digitalWrite(BOARD_PWRKEY_PIN, LOW);
 
     if (!initSD()) {
-        Serial.println("SD initialized failed");
-
+        enableRTC(false);
         enableSD(false);
+
+        Serial.println("SD initialized failed");
+        // LOG_ERROR(classNAME, "SD initialization failed");
     }
     else {
-        Serial.println("SD initialized successfully");
+        enableRTC(false);
         enableSD(true);
+
+        Serial.println("SD initialized successfully");
+        // LOG_INFO(classNAME, "SD initialized successfully");
+    }
+
+    if(!initRTC()) {
+        enableRTC(false);
+
+        // Serial.println("RTC initialization failed");
+        LOG_ERROR(classNAME, "RTC initialization failed");
+    } else {
+        // Serial.println("RTC initialized successfully");
+        LOG_INFO(classNAME, "RTC initialized successfully");
+
+        enableRTC(true);
+
+        String dateTime = getRTCDateTime();
+        LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
     }
 
     LOG_INFO(classNAME, "SD initialized successfully");
@@ -52,18 +73,23 @@ void setup()
     }
 
     Config cfg = readConfig();
-    LOG_INFO(classNAME, "SN: %s, APN: %s, SSID: %s", cfg.sn.c_str(), cfg.apn.c_str(), cfg.ssid.c_str());
+    LOG_INFO(classNAME, "SN: %s", cfg.sn.c_str());
+    LOG_INFO(classNAME, "APN: %s", cfg.apn.c_str());
+    LOG_INFO(classNAME, "SSID: %s, PSK: %s", cfg.ssid.c_str(), cfg.psk.c_str());
+    LOG_INFO(classNAME, "Max files: %d, Max size: %d MB", cfg.maxFiles, cfg.maxSizeMB);
+    LOG_INFO(classNAME, "URL: %s, Port: %s", cfg.url.c_str(), cfg.port.c_str());
+    LOG_INFO(classNAME, "Device ID: %s", cfg.deviceID.c_str());
+    LOG_INFO(classNAME, "Username: %s, Password: %s", cfg.username.c_str(), cfg.password.c_str());
+    LOG_INFO(classNAME, "Config read successfully");
 
-    if(!initRTC()) {
-        // Serial.println("RTC initialization failed");
-        LOG_ERROR(classNAME, "RTC initialization failed");
-    } else {
-        // Serial.println("RTC initialized successfully");
-        LOG_INFO(classNAME, "RTC initialized successfully");
-
-        String dateTime = getRTCDateTime();
-        LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
-    }
+    Thingsboard tb;
+    tb.url = cfg.url;
+    tb.port = cfg.port;
+    tb.deviceID = cfg.deviceID;
+    tb.username = cfg.username;
+    tb.password = cfg.password;
+    setData(tb);
+    LOG_INFO(classNAME, "Thingsboard data set successfully");
 
     bool enableGSM = true, enableWiFi = true;
 
@@ -88,7 +114,7 @@ void setup()
 
         enableGSM = false;
 
-        enableWiFi = initWiFi(cfg.ssid.c_str(), cfg.psk.c_str());
+        enableWiFi = false;
 
         if (cfg.ssid.length() > 0 && cfg.psk.length() > 0) {
             // Serial.println("WiFi configured, using custom SSID and PSK");
@@ -110,8 +136,19 @@ void setup()
             LOG_ERROR(classNAME, "WiFi initialization failed");
         }
     }
+
+    if (getToken()) {
+        // Serial.println("Token received successfully");
+        LOG_INFO(classNAME, "Token received successfully");
+
+        getDeviceData();
+    } else {
+        // Serial.println("Failed to get token from Thingsboard");
+        LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+    }
 }
 
 void loop()
 {
+    delay(1000);
 }

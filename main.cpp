@@ -128,12 +128,14 @@ void setup()
         }
     }
 
-    if (getToken()) {
-        LOG_INFO(classNAME, "Token received successfully");
+    if (enableGSM || enableWiFi) {
+        if (getToken()) {
+            LOG_INFO(classNAME, "Token received successfully");
 
-        getDeviceData();
-    } else {
-        LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+            getDeviceData();
+        } else {
+            LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+        }
     }
 }
 

@@ -1,8 +1,10 @@
 #include "logger.h"
 
 bool enableSDLogging = false;
+bool enableRTCLogging = false;
 int maxLogFiles = 5;
 int maxFileSizeMB = 1;
+String dateTime = "";
 
 const char* levelToString(LogLevel level) {
     switch (level) {
@@ -21,6 +23,10 @@ const char* levelToString(LogLevel level) {
 
 void enableSD(bool enable) {
     enableSDLogging = enable;
+}
+
+void enableRTC(bool enable) {
+    enableRTCLogging = enable;
 }
 
 void setLogLimits(int maxFiles, int maxSizeMB) {
@@ -81,8 +87,12 @@ void logf(LogLevel level, const char *tag, const char *func, const char *format,
     vsnprintf(msg, sizeof(msg), format, args);
     va_end(args);
 
-    String timestamp = getRTCDateTime();
-    String finalMsg = String("[") + timestamp + "] [" + levelToString(level) + "] [" + tag + "] [" + func + "] " + msg + "\n";
+    if (enableRTC) {
+        dateTime = getRTCDateTime();
+    } else {
+        dateTime = "1990-01-01 00:00:00";
+    }
+    String finalMsg = String("[") + dateTime + "] [" + levelToString(level) + "] [" + tag + "] [" + func + "] " + msg + "\n";
 
     Serial.print(finalMsg);
 

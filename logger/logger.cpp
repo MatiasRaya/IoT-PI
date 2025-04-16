@@ -81,7 +81,7 @@ void rotateLogsIfNeeded() {
 }
 
 void logf(LogLevel level, const char *tag, const char *func, const char *format, ...) {
-    char msg[256];
+    char msg[2048];
     va_list args;
     va_start(args, format);
     vsnprintf(msg, sizeof(msg), format, args);

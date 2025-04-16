@@ -37,7 +37,7 @@ bool initGSM(const char *apn)
     
     SimStatus status = modem.getSimStatus();
     int simRetries = 0;
-    while (status != SIM_READY && simRetries < 5) {
+    while (status != SIM_READY && simRetries < 1) {
         status = modem.getSimStatus();
         // Serial.print(".");
         LOG_INFO(classNAME, "SIM status: %d", status);
@@ -163,7 +163,7 @@ bool initGSM(const char *apn)
             uint32_t rep_data_packet_size;
             uint32_t tripTime;
             uint8_t TTL;
-            for (int i = 0; i < 20; ++i) {
+            for (int i = 0; i < 10; ++i) {
                 int res = modem.ping("www.google.com", resolved_ip_addr, rep_data_packet_size, tripTime, TTL);
                 if (res == 1) {
                     Serial.printf("Reply from %s: bytes=%u time=%ums TTL=%u\n", resolved_ip_addr, rep_data_packet_size, tripTime, TTL);
@@ -234,6 +234,13 @@ bool initWiFi(const char *ssid, const char *psk)
         }
     } else {
         LOG_ERROR(classNAME, "WiFi connection failed");
+    }
+
+    IPAddress ip;
+    if (WiFi.hostByName("thingsboard.iotmrpicomp.com", ip)) {
+        LOG_INFO(classNAME, "Resolved IP: %s", ip.toString().c_str());
+    } else {
+        LOG_ERROR(classNAME, "DNS resolution failed");
     }
 
     return retval;

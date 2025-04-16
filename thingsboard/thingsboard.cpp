@@ -42,28 +42,37 @@ String sendHttpRequest(String url, String method, String payload) {
         httpClient->beginRequest();
         httpClient->get(url.c_str());
         
-        httpClient->sendHeader("content-type", "application/json");
-        httpClient->sendHeader("accept", "application/json");
+        httpClient->sendHeader("Content-Type", "application/json");
+        httpClient->sendHeader("Accept", "application/json");
 
         LOG_INFO(classNAME, "Token length: %d", token.length());
 
         if (token.length() > 0) {
-            httpClient->sendHeader("x-authorization", "Bearer " + token);
+            httpClient->sendHeader("X-Authorization", "Bearer " + token);
         }
 
         httpClient->endRequest();
     }
     else if (method == "POST") {
         httpClient->beginRequest();
-        httpClient->post(url.c_str(), "", payload.c_str());
+        
+        if (payload.indexOf("\"username\"") != -1) {
+            LOG_INFO(classNAME, "Payload contains username, using POST method");
 
-        httpClient->sendHeader("content-type", "application/json");
-        httpClient->sendHeader("accept", "application/json");
+            httpClient->post(url.c_str(), "", payload.c_str());
+            httpClient->sendHeader("Content-Type", "application/json");
+            httpClient->sendHeader("Accept", "application/json");
+        } else {
+            httpClient->post(url.c_str(), "application/json", "");
+            
+            LOG_INFO(classNAME, "Token length: %d", token.length());
+            
+            if (token.length() > 0) {
+                httpClient->sendHeader("X-Authorization", "Bearer " + token);
+            }
 
-        LOG_INFO(classNAME, "Token length: %d", token.length());
-
-        if (token.length() > 0) {
-            httpClient->sendHeader("x-authorization", "Bearer " + token);
+            httpClient->sendHeader("Content-Length", String(payload.length()));
+            httpClient->println(payload.c_str());
         }
 
         httpClient->endRequest();
@@ -161,5 +170,19 @@ void getDeviceData() {
 }
 
 void postDeviceData() {
+    if (token.length() > 0) {
+        LOG_INFO(classNAME, "Posting device data to Thingsboard");
 
+        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+        String payload = "{\"data-prueba\":\"2\"}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+        String response = sendHttpRequest(url, "POST", payload);
+
+        LOG_INFO(classNAME, "Device data posted successfully");
+    } else {
+        LOG_ERROR(classNAME, "Token not available for Thingsboard");
+    }
 }

@@ -4,6 +4,7 @@
 #include "config/config.h"
 #include "rtc/rtc.h"
 #include "thingsboard/thingsboard.h"
+#include "led/led.h"
 #include "utilities.h"
 
 #define classNAME "main"
@@ -133,6 +134,8 @@ void setup()
             LOG_INFO(classNAME, "Token received successfully");
 
             getDeviceData();
+
+            postDeviceData();
         } else {
             LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
         }

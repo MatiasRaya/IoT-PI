@@ -34,7 +34,7 @@ bool initGSM(const char *apn)
     
     SimStatus status = modem.getSimStatus();
     int simRetries = 0;
-    while (status != SIM_READY && simRetries < 1) {
+    while (status != SIM_READY && simRetries < 10) {
         status = modem.getSimStatus();
         LOG_INFO(classNAME, "SIM status: %d", status);
         LOG_INFO(classNAME, "SIM retries: %d", simRetries);
@@ -192,13 +192,22 @@ bool initWiFi(const char *ssid, const char *psk)
     LOG_INFO(classNAME, "Start WiFi...");
 
     WiFi.mode(WIFI_STA);
+    WiFi.setAutoReconnect(false);
+    WiFi.disconnect(true);
+    delay(100);
     WiFi.begin(ssid, psk);
 
     int retry = 0;
-    while (WiFi.status() != WL_CONNECTED) {
+    while (WiFi.status() != WL_CONNECTED && retry < 10) {
         Serial.print(".");
         delay(1000);
-        if (retry++ > 10) {
+
+        LOG_INFO(classNAME, "WiFi status: %d", WiFi.status());
+        LOG_INFO(classNAME, "WiFi retry: %d", retry);
+
+        retry++;
+
+        if (retry == 10) {
             retval = false;
             break;
         }

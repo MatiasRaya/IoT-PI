@@ -60,6 +60,14 @@ void setup()
         LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
     }
 
+    initLed();
+
+    setLedState(LED_OFF, LED_COLOR_GREEN);
+    setLedState(LED_OFF, LED_COLOR_RED);
+    setLedState(LED_OFF, LED_COLOR_YELLOW);
+
+    setLedState(LED_ON, LED_COLOR_BLUE);
+
     LOG_INFO(classNAME, "SD initialized successfully");
 
     if (!LittleFS.begin()) {
@@ -139,6 +147,11 @@ void setup()
         } else {
             LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
         }
+
+        setLedState(LED_ON, LED_COLOR_GREEN);
+    }
+    else {
+        setLedState(LED_ON, LED_COLOR_RED);
     }
 }
 

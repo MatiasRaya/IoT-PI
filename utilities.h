@@ -31,9 +31,13 @@
 #define I2C_SDA_PIN                         (1)
 #define I2C_SCL_PIN                         (2)
 
-#define LED_RED_PIN                         (5)
-#define LED_GREEN_PIN                       (6)
-#define LED_BLUE_PIN                        (7)
+#define LED_RED_PIN                         (42)
+#define LED_GREEN_PIN                       (41)
+#define LED_BLUE_PIN                        (40)
+#define LED_PWR_ON                          LOW
+#define LED_PWR_OFF                         HIGH
+
+#define FLOW_SENSOR_PIN                     (15)
 
 #define TINY_GSM_RX_BUFFER                  1024 // Set RX buffer to 1Kb
 

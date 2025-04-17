@@ -19,4 +19,5 @@ enum LedColor {
     LED_COLOR_WHITE
 };
 
-void changeLedState(LedState state, LedColor color);
+void initLed();
+void setLedState(LedState state, LedColor color);

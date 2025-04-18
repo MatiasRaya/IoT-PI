@@ -1,88 +1,89 @@
-# Proyecto con LilyGO T-SIM7670G S3
 
-Este proyecto utiliza la placa **LilyGO T-SIM7670G S3** para desarrollar una solución IoT basada en comunicación GSM, sensores, módulos de almacenamiento y sincronización de tiempo. Se incluye integración con **ThingsBoard** para monitoreo y gestión remota.
+# Project with LilyGO T-SIM7670G S3
 
-## 🔧 Hardware Utilizado
+This project uses the **LilyGO T-SIM7670G S3** board to develop an IoT solution based on GSM communication, sensors, storage modules, and time synchronization. It includes integration with **ThingsBoard** for remote monitoring and management.
+
+## 🔧 Hardware Used
 
 - **[LilyGO T-SIM7670G S3](https://github.com/Xinyuan-LilyGO/LilyGO-T-A76XX)**  
-  Repositorio oficial con ejemplos y documentación.
+  Official repository with examples and documentation.
 
-- **[Ficha del producto en tienda oficial LilyGO](https://lilygo.cc/products/t-sim-7670g-s3?srsltid=AfmBOoowFPeOL0-oDb2Hlp35UwYXt_EmSn-TTLXlu_u8921EcUAY8BVK)**
+- **[Product page on official LilyGO store](https://lilygo.cc/products/t-sim-7670g-s3?srsltid=AfmBOoowFPeOL0-oDb2Hlp35UwYXt_EmSn-TTLXlu_u8921EcUAY8BVK)**
 
-- **[RTC DS3231 con EEPROM AT24C32](https://tienda.ityt.com.ar/interfaz-memoria-rtc/3105-ds3231-at24c32-iic-precision-rtc-s-bateria-itytarg.html?search_query=ds3231)**  
-  Módulo de reloj en tiempo real para sincronización precisa.
+- **[RTC DS3231 with EEPROM AT24C32](https://tienda.ityt.com.ar/interfaz-memoria-rtc/3105-ds3231-at24c32-iic-precision-rtc-s-bateria-itytarg.html?search_query=ds3231)**  
+  Real-time clock module for accurate time synchronization.
 
-- **[Módulo LED RGB 10mm 4 pines](https://tienda.ityt.com.ar/modulo-leds/7391-modulo-140c05-led-rgb-10mm-4-pines-5v-itytarg.html)**  
-  Para señales visuales de estado.
+- **[10mm RGB LED Module, 4 pins](https://tienda.ityt.com.ar/modulo-leds/7391-modulo-140c05-led-rgb-10mm-4-pines-5v-itytarg.html)**  
+  For visual status indicators.
 
-- **[Sensor de caudal YF-S201](https://tienda.ityt.com.ar/sensor-flujo-liquido/237-sensor-flujo-agua-caudalimetro-yf-s201-1-2-itytarg.html?search_query=caudalimetro)**  
-  Sensor de flujo de agua con salida digital.
+- **[YF-S201 Flow Sensor](https://tienda.ityt.com.ar/sensor-flujo-liquido/237-sensor-flujo-agua-caudalimetro-yf-s201-1-2-itytarg.html?search_query=caudalimetro)**  
+  Water flow sensor with digital output.
 
-## 🧰 Librerías Utilizadas
+## 🧰 Libraries Used
 
 - **[TinyGSM](https://github.com/vshymanskyy/TinyGSM)**  
-  Comunicación con módems GSM/GPRS.
+  Communication with GSM/GPRS modems.
 
 - **[TinyGPS](https://github.com/mikalhart/TinyGPS)**  
-  Decodificación de datos GPS NMEA (opcional si se usa GPS).
+  Decoding GPS NMEA data (optional if GPS is used).
 
 - **[ArduinoHttpClient](https://github.com/arduino-libraries/ArduinoHttpClient)**  
-  Cliente HTTP para realizar solicitudes REST.
+  HTTP client for making REST requests.
 
-## 🌐 Plataforma IoT
+## 🌐 IoT Platform
 
-- **[ThingsBoard - Documentación de API HTTP](https://thingsboard.io/docs/reference/http-api/)**  
-  Guía para enviar datos, atributos y telemetría.
+- **[ThingsBoard - HTTP API Documentation](https://thingsboard.io/docs/reference/http-api/)**  
+  Guide to send data, attributes, and telemetry.
 
-- **[ThingsBoard - Atributos del dispositivo](https://thingsboard.io/docs/user-guide/attributes/)**  
-  Uso de atributos para comunicación bidireccional.
+- **[ThingsBoard - Device Attributes](https://thingsboard.io/docs/user-guide/attributes/)**  
+  Using attributes for bidirectional communication.
 
-## 🧪 Entorno de Desarrollo
+## 🧪 Development Environment
 
 - **[PlatformIO](https://docs.platformio.org/en/latest/)**  
-  Framework y entorno para desarrollo embebido con ESP32, integración con VS Code.
+  Framework and environment for embedded development with ESP32, integrated with VS Code.
 
-## ⚙️ Cómo Compilar
+## ⚙️ How to Build
 
-1. **Instalar PlatformIO**  
-   Descargar e instalar [VS Code](https://code.visualstudio.com/) y luego agregar la extensión **PlatformIO IDE** desde el marketplace.
+1. **Install PlatformIO**  
+   Download and install [VS Code](https://code.visualstudio.com/), then add the **PlatformIO IDE** extension from the marketplace.
 
-2. **Clonar este repositorio**
+2. **Clone this repository**
 
    ```bash
    git clone https://github.com/MatiasRaya/IoT-PI.git
    cd IoT-PI
    ```
 
-3. Y abrir el proyecto en VS Code
+3. Open the project in VS Code
 
-4. Verificar la configuración del archivo **platformio.ini**
+4. Check the **platformio.ini** configuration file
 
-5. **Instalar dependencias**  
-   PlatformIO instalará automáticamente las librerías especificadas en platformio.ini
+5. **Install dependencies**  
+   PlatformIO will automatically install the libraries specified in platformio.ini
 
-6. **Compilar el proyecto**  
-   Desde VS Code:  
+6. **Build the project**  
+   In VS Code:  
    **PlatformIO > Build**  
-   o por terminal:
+   Or via terminal:
 
    ```bash
    pio run
    ```
 
-7. **Subir el firmware a la placa**  
-   Conectá la placa por USB y desde VS Code:  
+7. **Upload the firmware to the board**  
+   Connect the board via USB and in VS Code:  
    **PlatformIO > Upload**  
-   o por terminal:
+   Or via terminal:
 
    ```bash
    pio run --target upload
    ```
 
-8. **Abrir el monitor serial**  
-   Desde VS Code:  
-   **PlatomIO > Monitor**
-   o por terminal:
+8. **Open the serial monitor**  
+   In VS Code:  
+   **PlatformIO > Monitor**  
+   Or via terminal:
 
    ```bash
    pio device monitor

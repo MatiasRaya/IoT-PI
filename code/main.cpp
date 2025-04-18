@@ -163,6 +163,17 @@ void setup()
     else {
         setLedState(LED_ON, LED_COLOR_RED);
     }
+
+    if (enableGPS) {
+        float latitude, longitude;
+        if (getGPSLocation(latitude, longitude)) {
+            LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
+        } else {
+            LOG_ERROR(classNAME, "Failed to get GPS location");
+        }
+    } else {
+        LOG_ERROR(classNAME, "GPS not enabled");
+    }
 }
 
 void loop()

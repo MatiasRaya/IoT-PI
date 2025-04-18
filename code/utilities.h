@@ -27,6 +27,16 @@
 
 #define MODEM_GPS_ENABLE_GPIO               (4)
 #define MODEM_GPS_ENABLE_LEVEL              (1)
+#define MODEM_GPS_MODE                      (3)
+#define MODEM_GPS_OUTPUT_RATE               (1)
+#define MODEM_GPS_CGA                       (1)
+#define MODEM_GPS_GLL                       (1)
+#define MODEM_GPS_GSA                       (1)
+#define MODEM_GPS_GSV                       (1)
+#define MODEM_GPS_RMC                       (1)
+#define MODEM_GPS_VTG                       (1)
+#define MODEM_GPS_ZDA                       (1)
+#define MODEM_GPS_ANT                       (1)
 
 #define I2C_SDA_PIN                         (1)
 #define I2C_SCL_PIN                         (2)
@@ -56,6 +66,7 @@
 #include <TinyGsmClient.h>
 #include <StreamDebugger.h>
 #include <ArduinoHttpClient.h>
+#include <TinyGPSPlus.h>
 #include <stdarg.h>
 #include <FS.h>
 #include <SD.h>

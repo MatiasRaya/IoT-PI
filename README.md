@@ -81,7 +81,7 @@ Este proyecto utiliza la placa **LilyGO T-SIM7670G S3** para desarrollar una sol
 
 8. **Abrir el monitor serial**  
    Desde VS Code:  
-   **Platomio > Monitor**
+   **PlatomIO > Monitor**
    o por terminal:
 
    ```bash

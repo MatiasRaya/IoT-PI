@@ -48,6 +48,42 @@ Este proyecto utiliza la placa **LilyGO T-SIM7670G S3** para desarrollar una sol
    Descargar e instalar [VS Code](https://code.visualstudio.com/) y luego agregar la extensión **PlatformIO IDE** desde el marketplace.
 
 2. **Clonar este repositorio**
+
    ```bash
    git clone https://github.com/MatiasRaya/IoT-PI.git
    cd IoT-PI
+   ```
+
+3. Y abrir el proyecto en VS Code
+
+4. Verificar la configuración del archivo **platformio.ini**
+
+5. **Instalar dependencias**  
+   PlatformIO instalará automáticamente las librerías especificadas en platformio.ini
+
+6. **Compilar el proyecto**  
+   Desde VS Code:  
+   **PlatformIO > Build**  
+   o por terminal:
+
+   ```bash
+   pio run
+   ```
+
+7. **Subir el firmware a la placa**  
+   Conectá la placa por USB y desde VS Code:  
+   **PlatformIO > Upload**  
+   o por terminal:
+
+   ```bash
+   pio run --target upload
+   ```
+
+8. **Abrir el monitor serial**  
+   Desde VS Code:  
+   **Platomio > Monitor**
+   o por terminal:
+
+   ```bash
+   pio device monitor
+   ```

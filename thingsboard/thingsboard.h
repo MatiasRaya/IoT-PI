@@ -14,4 +14,7 @@ struct Thingsboard {
 void setData(Thingsboard &tb);
 bool getToken();
 void getDeviceData();
-void postDeviceData();
+void postDeviceData(String key, int value);
+void postDeviceData(String key, float value);
+void postDeviceData(String key, String value);
+void postDeviceData(String key, bool value);

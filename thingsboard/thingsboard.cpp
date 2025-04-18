@@ -169,14 +169,68 @@ void getDeviceData() {
     }
 }
 
-void postDeviceData() {
+void postDeviceData(String key, int value) {
     if (token.length() > 0) {
         LOG_INFO(classNAME, "Posting device data to Thingsboard");
 
         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
         LOG_INFO(classNAME, "URL: %s", url.c_str());
 
-        String payload = "{\"data-prueba\":\"2\"}";
+        String payload = "{\""+ key + "\":" + String(value) + "}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+        String response = sendHttpRequest(url, "POST", payload);
+
+        LOG_INFO(classNAME, "Device data posted successfully");
+    } else {
+        LOG_ERROR(classNAME, "Token not available for Thingsboard");
+    }
+}
+
+void postDeviceData(String key, float value) {
+    if (token.length() > 0) {
+        LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+        String payload = "{\""+ key + "\":" + String(value) + "}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+        String response = sendHttpRequest(url, "POST", payload);
+
+        LOG_INFO(classNAME, "Device data posted successfully");
+    } else {
+        LOG_ERROR(classNAME, "Token not available for Thingsboard");
+    }
+}
+
+void postDeviceData(String key, String value) {
+    if (token.length() > 0) {
+        LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+        String payload = "{\""+ key + "\":\"" + value + "\"}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+        String response = sendHttpRequest(url, "POST", payload);
+
+        LOG_INFO(classNAME, "Device data posted successfully");
+    } else {
+        LOG_ERROR(classNAME, "Token not available for Thingsboard");
+    }
+}
+
+void postDeviceData(String key, bool value) {
+    if (token.length() > 0) {
+        LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+        String payload = "{\""+ key + "\":" + String(value ? "true" : "false") + "}";
         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
 
         String response = sendHttpRequest(url, "POST", payload);

@@ -4,6 +4,7 @@
 
 StreamDebugger debugger(SerialAT, Serial);
 TinyGsm modem(debugger);
+TinyGPSPlus gps;
 
 bool initGSM()
 {
@@ -242,18 +243,89 @@ bool initWiFi(const char *ssid, const char *psk)
     return retval;
 }
 
-// bool initGPS()
-// {
-//     bool retval = true;
+bool initGPS()
+{
+    LOG_INFO(classNAME, "Starting GPS initialization...");
 
-//     LOG_INFO(classNAME, "Start GPS...");
+    String modemName = modem.getModemName();
+    if (modemName == "UNKOWN") {
+        LOG_ERROR(classNAME, "Unable to get modem name.");
 
-//     if (!gpsSerial.begin(9600)) {
-//         LOG_ERROR(classNAME, "Failed to start GPS serial port");
-//         retval = false;
-//     } else {
-//         LOG_INFO(classNAME, "GPS serial port started successfully");
-//     }
+        return false;
+    }
 
-//     return retval;
-// }
+    if (modemName.startsWith("A7670G")) {
+        LOG_ERROR(classNAME, "A7670G does not support built-in GPS. Please use GPSShield example.");
+
+        return false;
+    }
+
+    LOG_INFO(classNAME, "Modem model: %s", modemName.c_str());
+
+    LOG_INFO(classNAME, "Enabling GPS...");
+    if (!modem.enableGPS(MODEM_GPS_ENABLE_GPIO, MODEM_GPS_ENABLE_LEVEL)) {
+        LOG_ERROR(classNAME, "Failed to enable GPS.");
+
+        return false;
+    }
+
+    modem.setGPSBaud(MODEM_BAUDRATE);
+
+    modem.setGPSMode(MODEM_GPS_MODE);
+
+    modem.configNMEASentence(MODEM_GPS_CGA, MODEM_GPS_GLL, MODEM_GPS_GSA, MODEM_GPS_GSV, MODEM_GPS_RMC, MODEM_GPS_VTG, MODEM_GPS_ZDA, MODEM_GPS_ANT);
+
+    modem.setGPSOutputRate(MODEM_GPS_OUTPUT_RATE);
+
+    modem.enableNMEA();
+
+    LOG_INFO(classNAME, "GPS initialization completed.");
+    
+    return true;
+}
+
+bool getGPSLocation(float &latitude, float &longitude)
+{
+    LOG_INFO(classNAME, "Checking GPS fix...");
+
+    if (!modem.isEnableGPS()) {
+        LOG_ERROR(classNAME, "GPS is not enabled.");
+
+        if (initGPS()) {
+            LOG_INFO(classNAME, "GPS enabled successfully");
+        } else {
+            LOG_ERROR(classNAME, "Failed to enable GPS.");
+
+            return false;
+        }
+    }
+    else {
+        LOG_INFO(classNAME, "GPS enabled successfully!");
+    }
+
+    LOG_INFO(classNAME, "Waiting for GPS fix...");
+
+    unsigned long start = millis();
+    const unsigned long timeout = 1200000;
+
+    while (millis() - start < timeout) {
+        while (SerialAT.available()) {
+            gps.encode(SerialAT.read());
+        }
+
+        if (gps.location.isUpdated() && gps.location.isValid()) {
+            latitude = gps.location.lat();
+            longitude = gps.location.lng();
+
+            LOG_INFO(classNAME, "Latitude: %.6f, Longitude: %.6f", latitude, longitude);
+
+            return true;
+        }
+
+        delay(100);
+    }
+
+    LOG_ERROR(classNAME, "Timeout waiting for valid GPS fix");
+
+    return false;
+}

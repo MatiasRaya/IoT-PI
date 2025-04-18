@@ -10,3 +10,4 @@ bool initWiFi();
 bool initWiFi(const char* ssid, const char* psk);
 
 bool initGPS();
+bool getGPSLocation(float& latitude, float& longitude);

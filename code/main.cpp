@@ -95,7 +95,7 @@ void setup()
     setData(tb);
     LOG_INFO(classNAME, "Thingsboard data set successfully");
 
-    bool enableGSM = true, enableWiFi = true;
+    bool enableGSM = true, enableWiFi = true, enableGPS = true;
 
     if (cfg.apn.length() > 0) {
         LOG_INFO(classNAME, "APN configured, using custom APN");
@@ -105,6 +105,16 @@ void setup()
         LOG_INFO(classNAME, "APN not configured, using default APN");
 
         enableGSM = initGSM();
+    }
+
+    enableGPS = initGPS();
+
+    if (enableGPS) {
+        LOG_INFO(classNAME, "GPS initialized successfully");
+    } else {
+        LOG_ERROR(classNAME, "GPS initialization failed");
+
+        enableGPS = false;
     }
 
     if (enableGSM) {
@@ -138,15 +148,15 @@ void setup()
     }
 
     if (enableGSM || enableWiFi) {
-        if (getToken()) {
-            LOG_INFO(classNAME, "Token received successfully");
+        // if (getToken()) {
+        //     LOG_INFO(classNAME, "Token received successfully");
 
-            getDeviceData();
+        //     getDeviceData();
 
-            postDeviceData();
-        } else {
-            LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
-        }
+        //     postDeviceData();
+        // } else {
+        //     LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+        // }
 
         setLedState(LED_ON, LED_COLOR_GREEN);
     }

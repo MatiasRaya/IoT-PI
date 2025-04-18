@@ -241,3 +241,19 @@ bool initWiFi(const char *ssid, const char *psk)
 
     return retval;
 }
+
+// bool initGPS()
+// {
+//     bool retval = true;
+
+//     LOG_INFO(classNAME, "Start GPS...");
+
+//     if (!gpsSerial.begin(9600)) {
+//         LOG_ERROR(classNAME, "Failed to start GPS serial port");
+//         retval = false;
+//     } else {
+//         LOG_INFO(classNAME, "GPS serial port started successfully");
+//     }
+
+//     return retval;
+// }

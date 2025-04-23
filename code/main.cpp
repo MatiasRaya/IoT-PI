@@ -1,3 +1,4 @@
+#include "utilities.h"
 #include "network/network.h"
 #include "logger/logger.h"
 #include "sd/sd.h"
@@ -6,7 +7,6 @@
 #include "thingsboard/thingsboard.h"
 #include "led/led.h"
 #include "flowmeter/flowmeter.h"
-#include "utilities.h"
 
 #define classNAME "main"
 
@@ -65,8 +65,6 @@ void setup()
         String dateTime = getRTCDateTime();
         LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
     }
-
-    initFlowmeter();
 
     initLed();
 
@@ -153,72 +151,64 @@ void setup()
         }
     }
 
-    if (enableGPS) {
-        if (getGPSLocation(latitude, longitude)) {
-            LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
+    // if (enableGPS) {
+    //     if (getGPSLocation(latitude, longitude)) {
+    //         LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
 
-            setLedState(LED_ON, LED_COLOR_GREEN);
-        } else {
-            LOG_ERROR(classNAME, "Failed to get GPS location");
+    //         setLedState(LED_ON, LED_COLOR_GREEN);
+    //     } else {
+    //         LOG_ERROR(classNAME, "Failed to get GPS location");
 
-            setLedState(LED_ON, LED_COLOR_RED);
-        }
-    } else {
-        LOG_ERROR(classNAME, "GPS not enabled");
+    //         setLedState(LED_ON, LED_COLOR_RED);
+    //     }
+    // } else {
+    //     LOG_ERROR(classNAME, "GPS not enabled");
 
-        setLedState(LED_ON, LED_COLOR_RED);
-    }
+    //     setLedState(LED_ON, LED_COLOR_RED);
+    // }
+
+    initFlowmeter();
 }
 
 void loop()
 {
-    if (enableGPS) {
-        if (getGPSLocation(latitude, longitude)) {
-            LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
-        } else {
-            LOG_ERROR(classNAME, "Failed to get GPS location");
-        }
-    }
+    // if (enableGPS) {
+    //     if (getGPSLocation(latitude, longitude)) {
+    //         LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
+    //     } else {
+    //         LOG_ERROR(classNAME, "Failed to get GPS location");
+    //     }
+    // }
 
-    static unsigned long lastFlowLog = 0;
+    getFlowRate();
+    // getTotalLiters();
+    // getTotalMilliLitres();
 
-    if (millis() - lastFlowLog > 1000) {
-        float flowRate = getFlowRate();
-        if (flowRate >= 0.0f) {
-            LOG_INFO(classNAME, "Flow rate: %.2f L/min", flowRate);
-            LOG_INFO(classNAME, "Total liters: %.2f L", getTotalLiters());
-        } else {
-            LOG_ERROR(classNAME, "Failed to get flow rate");
-        }
+    // if (enableGSM || enableWiFi) {
+    //     if (enableWiFi) {
+    //         LOG_INFO(classNAME, "WiFi enabled, posting data to Thingsboard");
+    //     } else {
+    //         LOG_INFO(classNAME, "GSM enabled, posting data to Thingsboard");
+    //     }
 
-        lastFlowLog = millis();
-    }
+    //     // postDeviceData("SN", cfg.sn);
+    //     // postDeviceData("apn", cfg.apn);
+    //     // postDeviceData("ssid", cfg.ssid);
+    //     // postDeviceData("psk", cfg.psk);
 
-    if (enableGSM || enableWiFi) {
-        if (enableWiFi) {
-            LOG_INFO(classNAME, "WiFi enabled, posting data to Thingsboard");
-        } else {
-            LOG_INFO(classNAME, "GSM enabled, posting data to Thingsboard");
-        }
+    //     // postDeviceData("enableGSM", enableGSM);
+    //     // postDeviceData("enableWiFi", enableWiFi);
 
-        postDeviceData("SN", cfg.sn);
-        postDeviceData("apn", cfg.apn);
-        postDeviceData("ssid", cfg.ssid);
-        postDeviceData("psk", cfg.psk);
+    //     // if (enableGPS) {
+    //     //     postDeviceData("latitude", latitude);
+    //     //     postDeviceData("longitude", longitude);
+    //     // }
 
-        postDeviceData("enableGSM", enableGSM);
-        postDeviceData("enableWiFi", enableWiFi);
+    //     // postDeviceData("flow_rate", getFlowRate());
+    //     // postDeviceData("total_liters", getTotalLiters());
+    // } else {
+    //     LOG_ERROR(classNAME, "GSM and WiFi not enabled, cannot post data to Thingsboard");
+    // }
 
-        if (enableGPS) {
-            postDeviceData("latitude", latitude);
-            postDeviceData("longitude", longitude);
-        }
-
-        postDeviceData("flow_rate", getFlowRate());
-        postDeviceData("total_liters", getTotalLiters());
-    } else {
-        LOG_ERROR(classNAME, "GSM and WiFi not enabled, cannot post data to Thingsboard");
-    }
-
-    delay(1000);
+    // delay(1000);
 }

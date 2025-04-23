@@ -18,14 +18,17 @@ void IRAM_ATTR pulseCounter() {
 }
 
 void initFlowmeter() {
-    pinMode(flowsensor, INPUT_PULLUP);
+    // pinMode(flowsensor, INPUT_PULLUP);
+    pinMode(FLOW_SENSOR_PIN, INPUT_PULLUP);
     
-    attachInterrupt(flowsensor, pulseCounter, RISING);
-
+    // attachInterrupt(flowsensor, pulseCounter, RISING);
+    attachInterrupt(FLOW_SENSOR_PIN, pulseCounter, RISING);
+    
     currentTime = millis();
     cloopTime = currentTime;
     
-    LOG_INFO(classNAME, "Flowmeter initialized on pin %d", flowsensor);
+    // LOG_INFO(classNAME, "Flowmeter initialized on pin %d", flowsensor);
+    LOG_INFO(classNAME, "Flowmeter initialized on pin %d", FLOW_SENSOR_PIN);
 }
 
 void getFlowRate() {

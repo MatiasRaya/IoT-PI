@@ -35,8 +35,7 @@ bool initGSM(const char *apn)
     
     SimStatus status = modem.getSimStatus();
     int simRetries = 0;
-    while (status != SIM_READY && simRetries < 10) {
-        status = modem.getSimStatus();
+    while (status != SIM_READY && simRetries < 1) {
         LOG_INFO(classNAME, "SIM status: %d", status);
         LOG_INFO(classNAME, "SIM retries: %d", simRetries);
         simRetries++;
@@ -55,6 +54,13 @@ bool initGSM(const char *apn)
                     retval = false;
                     break;
         }
+
+        if (status) {
+            LOG_ERROR(classNAME, "SIM not ready, please check the SIM card!");
+            break;
+        }
+
+        status = modem.getSimStatus();
 
         delay(1000);
     }
@@ -306,7 +312,7 @@ bool getGPSLocation(float &latitude, float &longitude)
     LOG_INFO(classNAME, "Waiting for GPS fix...");
 
     unsigned long start = millis();
-    const unsigned long timeout = 1200000;
+    const unsigned long timeout = 120000;
 
     while (millis() - start < timeout) {
         while (SerialAT.available()) {

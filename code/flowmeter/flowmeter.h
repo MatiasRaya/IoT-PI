@@ -4,6 +4,7 @@
 #include "logger/logger.h"
 
 void initFlowmeter();
-float getFlowRate();
-float getTotalLiters();
-void resetTotalLiters();
+void getFlowRate();
+// float getTotalLiters();
+// float getTotalMilliLitres();
+// uint32_t getPulseCount();

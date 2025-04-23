@@ -2,56 +2,69 @@
 
 #define classNAME "flowmeter"
 
-volatile uint32_t pulseCount = 0;
-float totalLiters = 0.0f;
+volatile int pulseCount = 0;
+unsigned long currentTime;
+unsigned long cloopTime;
+float vol = 0.0;
+float l_minute = 0.0;
+const uint8_t flowsensor = 15;
+
+portMUX_TYPE mux = portMUX_INITIALIZER_UNLOCKED;
 
 void IRAM_ATTR pulseCounter() {
+    portENTER_CRITICAL_ISR(&mux);
     pulseCount++;
+    portEXIT_CRITICAL_ISR(&mux);
 }
 
 void initFlowmeter() {
-    pinMode(FLOW_SENSOR_PIN, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_PIN), pulseCounter, FALLING);
+    pinMode(flowsensor, INPUT_PULLUP);
     
-    totalLiters = 0.0f;
-    pulseCount = 0;
+    attachInterrupt(flowsensor, pulseCounter, RISING);
+
+    currentTime = millis();
+    cloopTime = currentTime;
     
-    LOG_INFO(classNAME, "Flowmeter initialized on pin %d", FLOW_SENSOR_PIN);
+    LOG_INFO(classNAME, "Flowmeter initialized on pin %d", flowsensor);
 }
 
-float getFlowRate() {
-    static uint32_t lastPulseCount = 0;
-    static unsigned long lastTime = 0;
+void getFlowRate() {
+    currentTime = millis();
 
-    unsigned long currentTime = millis();
+    if (currentTime - cloopTime >= 1000) {
+        cloopTime = currentTime;
 
-    if (currentTime - lastTime < 1000) {
-        LOG_ERROR(classNAME, "getFlowRate: Not enough time elapsed since last call");
+        int freq;
+        portENTER_CRITICAL(&mux);
+        freq = pulseCount;
+        pulseCount = 0;
+        portEXIT_CRITICAL(&mux);
 
-        return -1.0f;
+        if (freq != 0) {
+            l_minute = freq / 7.5;
+        } else {
+            l_minute = 0;
+        }
+
+        vol += (l_minute / 60.0);
+
+        LOG_INFO(classNAME, "Flow rate: %.2f L/min", l_minute);
+        LOG_INFO(classNAME, "Volume: %.2f mL", vol*1000.0);
+        LOG_INFO(classNAME, "Volume: %.2f L", vol);
     }
-
-    noInterrupts();
-    uint32_t currentPulseCount = pulseCount;
-    interrupts();
-
-    uint32_t pulsesInInternal = currentPulseCount - lastPulseCount;
-    lastPulseCount = currentPulseCount;
-    lastTime = currentTime;
-
-    float flowRate = (pulsesInInternal / 7.5f);
-    totalLiters += (flowRate / 60.0f);
-
-    LOG_INFO(classNAME, "Flow rate: %.2f L/min, Total liters: %.2f L", flowRate, totalLiters);
-
-    return flowRate;
 }
 
-float getTotalLiters() {
-    return totalLiters;
-}
+// float getTotalLiters() {
+//     LOG_INFO(classNAME, "Total litres: %.2f L", totalMilliLitres / 1000.0);
+//     return totalMilliLitres / 1000.0;
+// }
 
-void resetTotalLiters() {
-    totalLiters = 0.0f;
-    LOG_INFO(classNAME, "Total liters reset to 0.0 L");
-}
+// float getTotalMilliLitres() {
+//     LOG_INFO(classNAME, "Total milliLitres: %lu ml", totalMilliLitres);
+//     return totalMilliLitres;
+// }
+
+// uint32_t getPulseCount() {
+//     LOG_INFO(classNAME, "Pulse count: %lu", pulseCount);
+//     return pulseCount;
+// }

@@ -12,8 +12,88 @@
 
 bool enableGSM = true, enableWiFi = true, enableGPS = true;
 float latitude = 0.0f, longitude = 0.0f;
+unsigned long currentTimeGetML = 0;
 
 Config cfg;
+
+TaskHandle_t gpsTaskHandle = NULL;
+TaskHandle_t getDataTaskHandle = NULL;
+TaskHandle_t postDataTaskHandle = NULL;
+
+void gpsTask(void *pvParameters)
+{
+    while (true) {
+        // String numberCore = String(xPortGetCoreID());
+        // LOG_INFO(classNAME, "GPS task in core: %s", numberCore.c_str());
+        
+        if (enableGPS) {
+            if (getGPSLocation(latitude, longitude)) {
+                LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
+            } else {
+                LOG_ERROR(classNAME, "Failed to get GPS location");
+            }
+        }
+
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+
+void getDataThingsboard(void *pvParameters)
+{
+    while (true) {
+        // String numberCore = String(xPortGetCoreID());
+        // LOG_INFO(classNAME, "Get data task in core: %s", numberCore.c_str());
+
+        if (enableGSM || enableWiFi) {
+            if (enableWiFi) {
+                LOG_INFO(classNAME, "WiFi enabled, getting data from Thingsboard");
+            } else {
+                LOG_INFO(classNAME, "GSM enabled, getting data from Thingsboard");
+            }
+
+            getDeviceData();
+        } else {
+            LOG_ERROR(classNAME, "GSM and WiFi not enabled, cannot get data from Thingsboard");
+        }
+
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
+}
+
+void postDataThingsboard(void *pvParameters)
+{
+    while (true) {
+        // String numberCore = String(xPortGetCoreID());
+        // LOG_INFO(classNAME, "Post data task in core: %s", numberCore.c_str());
+
+        if (enableGSM || enableWiFi) {
+            if (enableWiFi) {
+                LOG_INFO(classNAME, "WiFi enabled, posting data to Thingsboard");
+            } else {
+                LOG_INFO(classNAME, "GSM enabled, posting data to Thingsboard");
+            }
+
+            postDeviceData("SN", cfg.sn);
+            postDeviceData("apn", cfg.apn);
+            postDeviceData("ssid", cfg.ssid);
+            postDeviceData("psk", cfg.psk);
+
+            postDeviceData("enableGSM", enableGSM);
+            postDeviceData("enableWiFi", enableWiFi);
+
+            if (enableGPS) {
+                postDeviceData("latitude", latitude);
+                postDeviceData("longitude", longitude);
+            }
+
+            postDeviceData("total_liters", getTotalMilliLitres() / 1000.0f);
+        } else if (!enableGSM && !enableWiFi) {
+            LOG_ERROR(classNAME, "GSM and WiFi not enabled, cannot post data to Thingsboard");
+        }
+
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
+    }
+}
 
 void setup()
 {
@@ -151,64 +231,53 @@ void setup()
         }
     }
 
-    // if (enableGPS) {
-    //     if (getGPSLocation(latitude, longitude)) {
-    //         LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
+    xTaskCreatePinnedToCore(
+        gpsTask,
+        "gpsTask",
+        10000,
+        NULL,
+        1,
+        &gpsTaskHandle,
+        0
+    );
 
-    //         setLedState(LED_ON, LED_COLOR_GREEN);
-    //     } else {
-    //         LOG_ERROR(classNAME, "Failed to get GPS location");
+    xTaskCreatePinnedToCore(
+        getDataThingsboard,
+        "getDataThingsboard",
+        10000,
+        NULL,
+        1,
+        &getDataTaskHandle,
+        0
+    );
 
-    //         setLedState(LED_ON, LED_COLOR_RED);
-    //     }
-    // } else {
-    //     LOG_ERROR(classNAME, "GPS not enabled");
-
-    //     setLedState(LED_ON, LED_COLOR_RED);
-    // }
+    xTaskCreatePinnedToCore(
+        postDataThingsboard,
+        "postDataThingsboard",
+        10000,
+        NULL,
+        1,
+        &postDataTaskHandle,
+        0
+    );
 
     initFlowmeter();
 }
 
 void loop()
 {
-    // if (enableGPS) {
-    //     if (getGPSLocation(latitude, longitude)) {
-    //         LOG_INFO(classNAME, "GPS location: %f, %f", latitude, longitude);
-    //     } else {
-    //         LOG_ERROR(classNAME, "Failed to get GPS location");
-    //     }
-    // }
+    // String numberCore = String(xPortGetCoreID());
+
+    // LOG_INFO(classNAME, "Proccess in core: %s", numberCore.c_str());
 
     getFlowRate();
-    // getTotalLiters();
-    // getTotalMilliLitres();
+    
+    unsigned long now = millis();
+    
+    if (now - currentTimeGetML >= 10000) {
+        currentTimeGetML = now;
 
-    // if (enableGSM || enableWiFi) {
-    //     if (enableWiFi) {
-    //         LOG_INFO(classNAME, "WiFi enabled, posting data to Thingsboard");
-    //     } else {
-    //         LOG_INFO(classNAME, "GSM enabled, posting data to Thingsboard");
-    //     }
+        getTotalMilliLitres();
+    }
 
-    //     // postDeviceData("SN", cfg.sn);
-    //     // postDeviceData("apn", cfg.apn);
-    //     // postDeviceData("ssid", cfg.ssid);
-    //     // postDeviceData("psk", cfg.psk);
-
-    //     // postDeviceData("enableGSM", enableGSM);
-    //     // postDeviceData("enableWiFi", enableWiFi);
-
-    //     // if (enableGPS) {
-    //     //     postDeviceData("latitude", latitude);
-    //     //     postDeviceData("longitude", longitude);
-    //     // }
-
-    //     // postDeviceData("flow_rate", getFlowRate());
-    //     // postDeviceData("total_liters", getTotalLiters());
-    // } else {
-    //     LOG_ERROR(classNAME, "GSM and WiFi not enabled, cannot post data to Thingsboard");
-    // }
-
-    // delay(1000);
 }

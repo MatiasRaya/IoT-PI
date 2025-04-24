@@ -5,6 +5,4 @@
 
 void initFlowmeter();
 void getFlowRate();
-// float getTotalLiters();
-// float getTotalMilliLitres();
-// uint32_t getPulseCount();
+float getTotalMilliLitres();

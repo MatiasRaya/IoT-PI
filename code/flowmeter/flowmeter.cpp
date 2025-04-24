@@ -51,23 +51,13 @@ void getFlowRate() {
 
         vol += (l_minute / 60.0);
 
-        LOG_INFO(classNAME, "Flow rate: %.2f L/min", l_minute);
-        LOG_INFO(classNAME, "Volume: %.2f mL", vol*1000.0);
-        LOG_INFO(classNAME, "Volume: %.2f L", vol);
+        // LOG_INFO(classNAME, "Flow rate: %.2f L/min", l_minute);
+        // LOG_INFO(classNAME, "Volume: %.2f mL", vol*1000.0);
+        // LOG_INFO(classNAME, "Volume: %.2f L", vol);
     }
 }
 
-// float getTotalLiters() {
-//     LOG_INFO(classNAME, "Total litres: %.2f L", totalMilliLitres / 1000.0);
-//     return totalMilliLitres / 1000.0;
-// }
-
-// float getTotalMilliLitres() {
-//     LOG_INFO(classNAME, "Total milliLitres: %lu ml", totalMilliLitres);
-//     return totalMilliLitres;
-// }
-
-// uint32_t getPulseCount() {
-//     LOG_INFO(classNAME, "Pulse count: %lu", pulseCount);
-//     return pulseCount;
-// }
+float getTotalMilliLitres() {
+    LOG_INFO(classNAME, "Total milliLitres: %lu ml", vol*1000.0);
+    return (vol*1000.0);
+}

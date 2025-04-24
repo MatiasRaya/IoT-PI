@@ -292,7 +292,7 @@ bool initGPS()
 
 bool getGPSLocation(float &latitude, float &longitude)
 {
-    LOG_INFO(classNAME, "Checking GPS fix...");
+    LOG_INFO(classNAME, "Checking GPS status...");
 
     if (!modem.isEnableGPS()) {
         LOG_ERROR(classNAME, "GPS is not enabled.");
@@ -312,7 +312,7 @@ bool getGPSLocation(float &latitude, float &longitude)
     LOG_INFO(classNAME, "Waiting for GPS fix...");
 
     unsigned long start = millis();
-    const unsigned long timeout = 120000;
+    const unsigned long timeout = 60000;
 
     while (millis() - start < timeout) {
         while (SerialAT.available()) {

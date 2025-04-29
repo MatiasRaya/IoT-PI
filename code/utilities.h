@@ -65,7 +65,8 @@
 
 #include <TinyGsmClient.h>
 #include <StreamDebugger.h>
-#include <ArduinoHttpClient.h>
+#include <ArduinoHttpClient.h> 
+#include <ArduinoJson.h>
 #include <TinyGPSPlus.h>
 #include <stdarg.h>
 #include <FS.h>

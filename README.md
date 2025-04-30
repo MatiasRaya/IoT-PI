@@ -38,6 +38,13 @@ This project uses the **LilyGO T-SIM7670G S3** board to develop an IoT solution 
 - **[ThingsBoard - Device Attributes](https://thingsboard.io/docs/user-guide/attributes/)**  
   Using attributes for bidirectional communication.
 
+## ⚙️ RTOS Support
+
+This project is designed to support multitasking using **FreeRTOS**, which is built into the ESP32 core.
+
+- **[FreeRTOS - Tasks and Co-routines Documentation](https://www.freertos.org/Documentation/02-Kernel/02-Kernel-features/01-Tasks-and-co-routines/00-Tasks-and-co-routines)**  
+  Overview of task management and co-routines in FreeRTOS.
+
 ## 🧪 Development Environment
 
 - **[PlatformIO](https://docs.platformio.org/en/latest/)**  

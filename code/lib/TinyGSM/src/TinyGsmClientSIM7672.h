@@ -343,7 +343,7 @@ class TinyGsmSim7672 : public TinyGsmModem<TinyGsmSim7672>,
          uint8_t &TTL)
   {
       uint8_t dest_addr_type = 1;
-      uint8_t num_pings = 4;
+      uint8_t num_pings = 1;
       uint8_t data_packet_size = 64;
       uint32_t interval_time = 1000;
       uint32_t wait_time = 10000;

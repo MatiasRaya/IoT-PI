@@ -11,9 +11,25 @@
 
 bool enableGSM = false, enableWiFi = false, enableGPS = false;
 float latitude = 0.0f, longitude = 0.0f;
-unsigned long currentTimeGetML = 0;
+float volML = 0.0f;
 
 Config cfg;
+
+TaskHandle_t flowmeterTask = NULL;
+
+void flowmeterTaskFunction(void *pvParameters)
+{
+    initFlowmeter();
+
+    while (true) {
+        getFlowRate();
+
+        volML = getTotalMilliLitres();
+        LOG_INFO(classNAME, "millilitres: %.2f", volML);
+
+        delay(1000);
+    }
+}
 
 void setup()
 {
@@ -53,6 +69,8 @@ void setup()
         // LOG_INFO(classNAME, "SD initialized successfully");
     }
 
+    enableSemaphore();
+
     if(!initRTC()) {
         enableRTC(false);
 
@@ -65,6 +83,15 @@ void setup()
         String dateTime = getRTCDateTime();
         LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
     }
+
+    xTaskCreatePinnedToCore(
+        flowmeterTaskFunction,
+        "Flowmeter Task",
+        10000,
+        NULL,
+        1,
+        &flowmeterTask,
+        0);
 
     initLed();
 

@@ -5,6 +5,17 @@ bool enableRTCLogging = false;
 int maxLogFiles = 5;
 int maxFileSizeMB = 1;
 String dateTime = "";
+SemaphoreHandle_t logMutex;
+
+void enableSemaphore() {
+    logMutex = xSemaphoreCreateMutex();
+
+    if (logMutex == NULL) {
+        Serial.println("ERROR: Failed to create log mutex");
+    } else {
+        Serial.println("INFO: Log mutex created successfully");
+    }
+}
 
 const char* levelToString(LogLevel level) {
     switch (level) {
@@ -81,6 +92,16 @@ void rotateLogsIfNeeded() {
 }
 
 void logf(LogLevel level, const char *tag, const char *func, const char *format, ...) {
+    if (logMutex) {
+        if (xSemaphoreTake(logMutex, portMAX_DELAY) != pdTRUE) {
+            Serial.println("ERROR: Failed to take log mutex");
+            return;
+        }
+    } else {
+        Serial.println("ERROR: Log mutex not initialized");
+        return;
+    }
+
     char msg[2048];
     va_list args;
     va_start(args, format);
@@ -97,6 +118,10 @@ void logf(LogLevel level, const char *tag, const char *func, const char *format,
     Serial.print(finalMsg);
 
     if (!enableSDLogging) {
+        if (logMutex) {
+            xSemaphoreGive(logMutex);
+        }
+
         return;
     }
 
@@ -108,5 +133,9 @@ void logf(LogLevel level, const char *tag, const char *func, const char *format,
         logFile.close();
     } else {
         Serial.println("ERROR: No se pudo escribir en log.txt");
+    }
+
+    if (logMutex) {
+        xSemaphoreGive(logMutex);
     }
 }

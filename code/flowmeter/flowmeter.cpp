@@ -58,6 +58,6 @@ void getFlowRate() {
 }
 
 float getTotalMilliLitres() {
-    LOG_INFO(classNAME, "Total milliLitres: %lu ml", vol*1000.0);
+    LOG_INFO(classNAME, "Total milliLitres: %.2f ml", vol*1000.0);
     return (vol*1000.0);
 }

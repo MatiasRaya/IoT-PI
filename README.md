@@ -30,6 +30,13 @@ This project uses the **LilyGO T-SIM7670G S3** board to develop an IoT solution 
 - **[ArduinoHttpClient](https://github.com/arduino-libraries/ArduinoHttpClient)**  
   HTTP client for making REST requests.
 
+- **[ArduinoJson](https://github.com/bblanchon/ArduinoJson)**  
+  Efficient JSON parsing and serialization library for embedded systems.
+
+- **[StreamDebugger](https://github.com/vshymanskyy/StreamDebugger)**  
+  Debugging utility to monitor and log AT commands sent to GSM modules.
+
+
 ## 🌐 IoT Platform
 
 - **[ThingsBoard - HTTP API Documentation](https://thingsboard.io/docs/reference/http-api/)**  

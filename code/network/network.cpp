@@ -454,14 +454,13 @@ bool getCoordinatesInternet(float &latitude, float &longitude)
 }
 
 void setData(Thingsboard &tb) {
-    if (tb.url.length() > 0 && tb.deviceID.length() > 0) {
+    if (tb.url.length() > 0) {
         LOG_INFO(classNAME, "Thingsboard URL and Device ID configured");
 
         thingsboard.url = tb.url;
-        thingsboard.port = tb.port;
-        thingsboard.deviceID = tb.deviceID;
-        thingsboard.username = tb.username;
-        thingsboard.password = tb.password;
+        thingsboard.keyProvisioning = tb.keyProvisioning;
+        thingsboard.secretProvisioning = tb.secretProvisioning;
+        thingsboard.token = tb.token;
     }
     else {
         LOG_ERROR(classNAME, "Thingsboard URL and Device ID not configured");
@@ -559,138 +558,190 @@ String sendHttpRequest(String url, String method, String payload) {
     return retval;
 }
 
-bool getToken() {
-    bool retval = false;
+// bool getToken() {
+//     bool retval = false;
 
-    if (thingsboard.username.length() > 0 && thingsboard.password.length() > 0) {
-        LOG_INFO(classNAME, "Getting token from Thingsboard");
+//     if (thingsboard.username.length() > 0 && thingsboard.password.length() > 0) {
+//         LOG_INFO(classNAME, "Getting token from Thingsboard");
 
-        String url = "/api/auth/login";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
+//         String url = "/api/auth/login";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
         
-        String payload = "{\"username\":\"" + thingsboard.username + "\",\"password\":\"" + thingsboard.password + "\"}";
-        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+//         String payload = "{\"username\":\"" + thingsboard.username + "\",\"password\":\"" + thingsboard.password + "\"}";
+//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
         
-        String response = sendHttpRequest(url, "POST", payload);
+//         String response = sendHttpRequest(url, "POST", payload);
 
-        if (response.length() > 0) {
-            LOG_INFO(classNAME, "Token received successfully");
+//         if (response.length() > 0) {
+//             LOG_INFO(classNAME, "Token received successfully");
 
-            int startIndex = response.indexOf("\"token\":\"") + 9;
-            int endIndex = response.indexOf("\"", startIndex);
-            token = response.substring(startIndex, endIndex);
+//             int startIndex = response.indexOf("\"token\":\"") + 9;
+//             int endIndex = response.indexOf("\"", startIndex);
+//             token = response.substring(startIndex, endIndex);
 
-            if (token.length() > 0) {
-                LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
-                LOG_INFO(classNAME, "Token: %s", token.c_str());
+//             if (token.length() > 0) {
+//                 LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
+//                 LOG_INFO(classNAME, "Token: %s", token.c_str());
 
-                retval = true;
-            }
-        }
-        else {
-            LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
-        }
+//                 retval = true;
+//             }
+//         }
+//         else {
+//             LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+//         }
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Username and password not configured for Thingsboard");
+//     }
+
+//     return retval;
+// }
+
+// void getDeviceData(String data) {
+//     if (token.length() > 0) {
+//         LOG_INFO(classNAME, "Getting device data from Thingsboard");
+
+//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/values/attributes/SHARED_SCOPE";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+//         String response = sendHttpRequest(url, "GET", "");
+
+//         if (response.length() > 0) {
+//             LOG_INFO(classNAME, "Device data received successfully");
+//             LOG_INFO(classNAME, "Response: %s", response.c_str());
+
+//             // if ()
+//         }
+//         else {
+//             LOG_ERROR(classNAME, "Failed to get device data from Thingsboard");
+//         }
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
+//     }
+// }
+
+// void postDeviceData(String key, int value) {
+//     if (token.length() > 0) {
+//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+//         String payload = "{\""+ key + "\":" + String(value) + "}";
+//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+//         String response = sendHttpRequest(url, "POST", payload);
+
+//         LOG_INFO(classNAME, "Device data posted successfully");
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
+//     }
+// }
+
+// void postDeviceData(String key, float value) {
+//     if (token.length() > 0) {
+//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+//         String payload = "{\""+ key + "\":" + String(value) + "}";
+//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+//         String response = sendHttpRequest(url, "POST", payload);
+
+//         LOG_INFO(classNAME, "Device data posted successfully");
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
+//     }
+// }
+
+// void postDeviceData(String key, String value) {
+//     if (token.length() > 0) {
+//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+//         String payload = "{\""+ key + "\":\"" + value + "\"}";
+//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+//         String response = sendHttpRequest(url, "POST", payload);
+
+//         LOG_INFO(classNAME, "Device data posted successfully");
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
+//     }
+// }
+
+// void postDeviceData(String key, bool value) {
+//     if (token.length() > 0) {
+//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+
+//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
+//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+//         String payload = "{\""+ key + "\":" + String(value ? "true" : "false") + "}";
+//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+
+//         String response = sendHttpRequest(url, "POST", payload);
+
+//         LOG_INFO(classNAME, "Device data posted successfully");
+//     }
+//     else {
+//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
+//     }
+// }
+
+void syncRTCESP32() {
+    configTime(-3 * 3600, 0, "pool.ntp.org");
+
+    LOG_INFO(classNAME, "Waiting for NTP synchronization...");
+    time_t now = time(nullptr);
+    unsigned long start = millis();
+    while (now < 8 * 3600 * 2 && millis() - start < 10000) {
+        delay(500);
+        now = time(nullptr);
     }
-    else {
-        LOG_ERROR(classNAME, "Username and password not configured for Thingsboard");
+
+    if (now < 8 * 3600 * 2) {
+        LOG_ERROR(classNAME, "Failed to get time from NTP.");
+        return;
     }
 
-    return retval;
-}
-
-void getDeviceData() {
-    if (token.length() > 0) {
-        LOG_INFO(classNAME, "Getting device data from Thingsboard");
-
-        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/values/attributes/SHARED_SCOPE";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
-        String response = sendHttpRequest(url, "GET", "");
-
-        if (response.length() > 0) {
-            LOG_INFO(classNAME, "Device data received successfully");
-            LOG_INFO(classNAME, "Response: %s", response.c_str());
-        }
-        else {
-            LOG_ERROR(classNAME, "Failed to get device data from Thingsboard");
-        }
+    struct tm *timeinfo = localtime(&now);
+    if (timeinfo) {
+        char buffer[30];
+        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+        LOG_DEBUG(classNAME, "System time (NTP): %s", buffer);
+    } else {
+        LOG_ERROR(classNAME, "System time is invalid.");
+        return;
     }
-    else {
-        LOG_ERROR(classNAME, "Token not available for Thingsboard");
-    }
-}
+    
+    time_t utcNow = now - (3 * 3600);
+    
+    DateTime rtcTime = getRTC();
+    time_t rtcEpoch = rtcTime.unixtime();
+    
+    LOG_DEBUG(classNAME, "Epoch NTP (UTC): %ld", utcNow);
+    LOG_DEBUG(classNAME, "Epoch RTC (UTC): %ld", rtcEpoch);
 
-void postDeviceData(String key, int value) {
-    if (token.length() > 0) {
-        LOG_INFO(classNAME, "Posting device data to Thingsboard");
+    long diffSeconds = abs(utcNow - rtcEpoch);
 
-        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
+    LOG_DEBUG(classNAME, "RTC time: %04d-%02d-%02d %02d:%02d:%02d",
+              rtcTime.year(), rtcTime.month(), rtcTime.day(),
+              rtcTime.hour(), rtcTime.minute(), rtcTime.second());
 
-        String payload = "{\""+ key + "\":" + String(value) + "}";
-        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+    LOG_INFO(classNAME, "RTC vs NTP time difference: %ld seconds", diffSeconds);
 
-        String response = sendHttpRequest(url, "POST", payload);
-
-        LOG_INFO(classNAME, "Device data posted successfully");
-    }
-    else {
-        LOG_ERROR(classNAME, "Token not available for Thingsboard");
-    }
-}
-
-void postDeviceData(String key, float value) {
-    if (token.length() > 0) {
-        LOG_INFO(classNAME, "Posting device data to Thingsboard");
-
-        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
-
-        String payload = "{\""+ key + "\":" + String(value) + "}";
-        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
-
-        String response = sendHttpRequest(url, "POST", payload);
-
-        LOG_INFO(classNAME, "Device data posted successfully");
-    }
-    else {
-        LOG_ERROR(classNAME, "Token not available for Thingsboard");
-    }
-}
-
-void postDeviceData(String key, String value) {
-    if (token.length() > 0) {
-        LOG_INFO(classNAME, "Posting device data to Thingsboard");
-
-        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
-
-        String payload = "{\""+ key + "\":\"" + value + "\"}";
-        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
-
-        String response = sendHttpRequest(url, "POST", payload);
-
-        LOG_INFO(classNAME, "Device data posted successfully");
-    }
-    else {
-        LOG_ERROR(classNAME, "Token not available for Thingsboard");
-    }
-}
-
-void postDeviceData(String key, bool value) {
-    if (token.length() > 0) {
-        LOG_INFO(classNAME, "Posting device data to Thingsboard");
-
-        String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
-
-        String payload = "{\""+ key + "\":" + String(value ? "true" : "false") + "}";
-        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
-
-        String response = sendHttpRequest(url, "POST", payload);
-
-        LOG_INFO(classNAME, "Device data posted successfully");
-    }
-    else {
-        LOG_ERROR(classNAME, "Token not available for Thingsboard");
+    if (diffSeconds >= 3600) {
+        LOG_INFO(classNAME, "Time difference is too large, updating RTC...");
+        setRTCDateTime(now);
+    } else {
+        LOG_INFO(classNAME, "RTC is already synchronized. No update needed.");
     }
 }

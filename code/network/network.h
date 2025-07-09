@@ -5,10 +5,9 @@
 
 struct Thingsboard {
     String url;
-    String port;
-    String deviceID;
-    String username;
-    String password;
+    String token;
+    String secretProvisioning;
+    String keyProvisioning;
 };
 
 bool initGSM();
@@ -19,12 +18,13 @@ bool initWiFi(const char* ssid, const char* psk);
 
 bool initGPS();
 bool getGPSLocation(float& latitude, float& longitude);
-bool getCoordinatesInternet(float& latitude, float& longitude);
 
 void setData(Thingsboard &tb);
 bool getToken();
-void getDeviceData();
+void getDeviceData(String data);
 void postDeviceData(String key, int value);
 void postDeviceData(String key, float value);
 void postDeviceData(String key, String value);
 void postDeviceData(String key, bool value);
+
+void syncRTCESP32();

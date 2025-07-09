@@ -5,3 +5,5 @@
 
 bool initRTC();
 String getRTCDateTime();
+DateTime getRTC();
+void setRTCDateTime(time_t t);

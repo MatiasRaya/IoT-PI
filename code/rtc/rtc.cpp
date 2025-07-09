@@ -22,3 +22,21 @@ String getRTCDateTime() {
              now.hour(), now.minute(), now.second());
     return String(buffer);
 }
+
+DateTime getRTC() {
+    return rtc.now();
+}
+
+void setRTCDateTime(time_t t) {
+    struct tm *timeinfo = localtime(&t);
+    rtc.adjust(DateTime(timeinfo->tm_year + 1900,
+                        timeinfo->tm_mon + 1,
+                        timeinfo->tm_mday,
+                        timeinfo->tm_hour,
+                        timeinfo->tm_min,
+                        timeinfo->tm_sec));
+
+    char buffer[20];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    LOG_DEBUG(classNAME, "RTC DateTime set to: %s", buffer);
+}

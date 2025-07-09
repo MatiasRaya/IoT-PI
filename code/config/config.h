@@ -6,15 +6,24 @@
 struct Config {
     String sn;
     String apn;
+    float longitude;
+    float latitude;
     String ssid;
     String psk;
-    int maxFiles = 5;
-    int maxSizeMB = 1;
-    String url = "";
-    String port = "";
-    String deviceID = "";
-    String username = "";
-    String password = "";
+    int flowMeter;
+    int flowMeterTotal;
+    bool isWiFi;
+    bool isGPRS;
+    bool isToken;
+    String url;
+    String claveAprovisionamiento;
+    String secretoAprovisionamiento;
+    String token;
 };
 
 Config readConfig();
+void readAllConfig();
+bool updateConfigField(const String& key, const String& newValue);
+bool updateConfigField(const String& key, int value);
+bool updateConfigField(const String& key, float value);
+bool updateConfigField(const String& key, bool value);

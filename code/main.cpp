@@ -12,24 +12,25 @@
 bool enableGSM = false, enableWiFi = false, enableGPS = false;
 float latitude = 0.0f, longitude = 0.0f;
 float volML = 0.0f;
+unsigned long lastRTCSync = 0;
 
 Config cfg;
 
-TaskHandle_t flowmeterTask = NULL;
+// TaskHandle_t flowmeterTask = NULL;
 
-void flowmeterTaskFunction(void *pvParameters)
-{
-    initFlowmeter();
+// void flowmeterTaskFunction(void *pvParameters)
+// {
+//     initFlowmeter();
 
-    while (true) {
-        getFlowRate();
+//     while (true) {
+//         getFlowRate();
 
-        volML = getTotalMilliLitres();
-        LOG_INFO(classNAME, "millilitres: %.2f", volML);
+//         volML = getTotalMilliLitres();
+//         LOG_INFO(classNAME, "millilitres: %.2f", volML);
 
-        delay(1000);
-    }
-}
+//         delay(1000);
+//     }
+// }
 
 void setup()
 {
@@ -84,14 +85,15 @@ void setup()
         LOG_INFO(classNAME, "RTC DateTime: %s", dateTime.c_str());
     }
 
-    xTaskCreatePinnedToCore(
-        flowmeterTaskFunction,
-        "Flowmeter Task",
-        10000,
-        NULL,
-        1,
-        &flowmeterTask,
-        0);
+    // xTaskCreatePinnedToCore(
+    //     flowmeterTaskFunction,
+    //     "Flowmeter Task",
+    //     10000,
+    //     NULL,
+    //     1,
+    //     &flowmeterTask,
+    //     0
+    // );
 
     initLed();
 
@@ -113,24 +115,24 @@ void setup()
     LOG_INFO(classNAME, "SN: %s", cfg.sn.c_str());
     LOG_INFO(classNAME, "APN: %s", cfg.apn.c_str());
     LOG_INFO(classNAME, "SSID: %s, PSK: %s", cfg.ssid.c_str(), cfg.psk.c_str());
-    LOG_INFO(classNAME, "Max files: %d, Max size: %d MB", cfg.maxFiles, cfg.maxSizeMB);
-    LOG_INFO(classNAME, "URL: %s, Port: %s", cfg.url.c_str(), cfg.port.c_str());
-    LOG_INFO(classNAME, "Device ID: %s", cfg.deviceID.c_str());
-    LOG_INFO(classNAME, "Username: %s, Password: %s", cfg.username.c_str(), cfg.password.c_str());
+    LOG_INFO(classNAME, "URL: %s", cfg.url.c_str());
     LOG_INFO(classNAME, "Config read successfully");
 
     Thingsboard tb;
     tb.url = cfg.url;
-    tb.port = cfg.port;
-    tb.deviceID = cfg.deviceID;
-    tb.username = cfg.username;
-    tb.password = cfg.password;
+    if (cfg.token.length() > 0) {
+        tb.token = cfg.token;
+    } else {
+        tb.token = "null";
+    }
+    tb.secretProvisioning = cfg.secretoAprovisionamiento;
+    tb.keyProvisioning = cfg.claveAprovisionamiento;
     setData(tb);
     LOG_INFO(classNAME, "Thingsboard data set successfully");
 
     delay(1000);
 
-    if (cfg.apn.length() > 0) {
+   if (cfg.apn.length() > 0) {
         LOG_INFO(classNAME, "APN configured, using custom APN");
 
         enableGSM = initGSM(cfg.apn.c_str());
@@ -162,12 +164,10 @@ void setup()
         enableWiFi = false;
 
         if (cfg.ssid.length() > 0 && cfg.psk.length() > 0) {
-
             LOG_INFO(classNAME, "WiFi configured, using custom SSID and PSK");
 
             enableWiFi = initWiFi(cfg.ssid.c_str(), cfg.psk.c_str());
         } else {
-
             LOG_INFO(classNAME, "WiFi not configured, using default SSID and PSK");
 
             enableWiFi = initWiFi();
@@ -176,13 +176,52 @@ void setup()
         if (enableWiFi) {
             LOG_INFO(classNAME, "WiFi initialized successfully");
         } else {
-
             LOG_ERROR(classNAME, "WiFi initialization failed");
         }
     }
+
+    if (enableGSM || enableWiFi) {
+        syncRTCESP32();
+    }
+    else {
+        LOG_ERROR(classNAME, "No internet available for NTP sync");
+    }
+
+    if (enableGSM) {
+        updateConfigField("isGPRS", true);
+    }
+    else {
+        updateConfigField("isGPRS", false);
+    }
+
+    if (enableWiFi) {
+        updateConfigField("isWiFi", true);
+    }
+    else {
+        updateConfigField("isWiFi", false);
+    }
+
+    readAllConfig();
 }
 
 void loop()
 {
+    // getGPSLocation(latitude, longitude);
+
+    static unsigned long lastRTCSync = 0;
+    unsigned long currentMillis = millis();
+
+    if (currentMillis - lastRTCSync >= 3600000) {
+        if (enableGSM || enableWiFi) {
+            LOG_DEBUG(classNAME, "Checking RTC sync with NTP (every hour)");
+
+            syncRTCESP32();
+        } else {
+            LOG_ERROR(classNAME, "No internet available for NTP sync");
+        }
+
+        lastRTCSync = currentMillis;
+    }
+
     delay(1000);
 }

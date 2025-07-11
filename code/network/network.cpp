@@ -524,35 +524,6 @@ bool postData(const String& key, const String& newValue) {
         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
         
         String response = sendHttpRequest(url, "POST", payload);
-
-        // if (response.length() > 0) {
-        //     LOG_INFO(classNAME, "Parsing response");
-
-        //     StaticJsonDocument<256> doc;
-        //     DeserializationError error = deserializeJson(doc, response);
-
-        //     if (error) {
-        //         LOG_ERROR(classNAME, "JSON parsing failed: %s", error.c_str());
-        //     }
-
-        //     const char* status = doc["status"];
-        //     const char* credentials = doc["credentialsValue"];
-
-        //     if (String(status) == "SUCCESS" && credentials != nullptr) {
-        //         String token;
-        //         token = String(credentials);
-        //         LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
-        //         LOG_INFO(classNAME, "Token: %s", token.c_str());
-
-        //         thingsboard.token = token;
-
-        //         updateConfigField("TOKEN", token);
-        //     } else {
-        //         LOG_ERROR(classNAME, "Provisioning failed. Status: %s", status);
-        //     }
-        // } else {
-        //     LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
-        // }
     }
     else {
         LOG_ERROR(classNAME, "token not set");

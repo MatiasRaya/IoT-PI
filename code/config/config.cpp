@@ -45,23 +45,23 @@ Config readConfig() {
         else if (line.startsWith("flowMeterTotal=")) {
             config.flowMeterTotal = line.substring(17).toInt();
         }
-        else if (line.startsWith("isWIFI=")) {
-            config.isWiFi = (line.substring(8) == "true");
+        else if (line.startsWith("isWiFi=")) {
+            config.isWiFi = (line.substring(7) == "true");
         }
         else if (line.startsWith("isGPRS=")) {
-            config.isGPRS = (line.substring(8) == "true");
+            config.isGPRS = (line.substring(7) == "true");
         }
         else if (line.startsWith("isToken=")) {
-            config.isToken = (line.substring(9) == "true");
+            config.isToken = (line.substring(8) == "true");
         }
         else if (line.startsWith("URL=")) {
             config.url = line.substring(4);
         }
-        else if (line.startsWith("CLAVE_APROVISIONAMIENTO=")) {
+        else if (line.startsWith("claveAprovisionamiento=")) {
             config.claveAprovisionamiento = line.substring(23);
         }
-        else if (line.startsWith("SECRETO_APROVISIONAMIENTO=")) {
-            config.secretoAprovisionamiento = line.substring(26);
+        else if (line.startsWith("secretoAprovisionamiento=")) {
+            config.secretoAprovisionamiento = line.substring(25);
         }
         else if (line.startsWith("TOKEN=")) {
             config.token = line.substring(6);
@@ -135,6 +135,7 @@ bool updateConfigField(const String& key, const String& newValue) {
     file.close();
 
     LOG_DEBUG(classNAME, "Updated '%s' = '%s'", key.c_str(), newValue.c_str());
+
     return true;
 }
 

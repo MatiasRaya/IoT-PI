@@ -1,0 +1,14 @@
+SN=0001-00001
+APN=igprs.claro.com.ar
+longitude=0.000000
+latitude=0.000000
+SSID=Marga
+PSK=Lechuga0601
+flowMeter=0
+flowMeterTotal=0
+isWiFi=false
+isGPRS=false
+URL=thingsboard.iotmrpicomp.com
+claveAprovisionamiento=fq4tydh3cmsi8wde8rt2
+secretoAprovisionamiento=n8pa8amzw9rwrjkp6mqm
+TOKEN=null

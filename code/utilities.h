@@ -80,3 +80,4 @@
 #include <Wire.h>
 #include <RTClib.h>
 #include <time.h>
+#include <ArduinoJson.h>

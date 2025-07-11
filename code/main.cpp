@@ -116,17 +116,16 @@ void setup()
     LOG_INFO(classNAME, "APN: %s", cfg.apn.c_str());
     LOG_INFO(classNAME, "SSID: %s, PSK: %s", cfg.ssid.c_str(), cfg.psk.c_str());
     LOG_INFO(classNAME, "URL: %s", cfg.url.c_str());
+    LOG_INFO(classNAME, "Key Provisioning: %s", cfg.claveAprovisionamiento.c_str());
+    LOG_INFO(classNAME, "Secret Provisioning: %s", cfg.secretoAprovisionamiento.c_str());
     LOG_INFO(classNAME, "Config read successfully");
 
     Thingsboard tb;
-    tb.url = cfg.url;
-    if (cfg.token.length() > 0) {
-        tb.token = cfg.token;
-    } else {
-        tb.token = "null";
-    }
-    tb.secretProvisioning = cfg.secretoAprovisionamiento;
-    tb.keyProvisioning = cfg.claveAprovisionamiento;
+    tb.url = cfg.url.c_str();
+    tb.token = cfg.token.c_str();
+    tb.sn = cfg.sn.c_str();
+    tb.secretProvisioning = cfg.secretoAprovisionamiento.c_str();
+    tb.keyProvisioning = cfg.claveAprovisionamiento.c_str();
     setData(tb);
     LOG_INFO(classNAME, "Thingsboard data set successfully");
 
@@ -201,7 +200,24 @@ void setup()
         updateConfigField("isWiFi", false);
     }
 
-    readAllConfig();
+    cfg = readConfig();
+
+    if (cfg.token == "null") {
+        getToken();
+    }
+
+    LOG_DEBUG(classNAME, "cfg.isWiFi: %s", (cfg.isWiFi ? "true" : "false"));
+
+    postData("SN", cfg.sn);
+    postData("isWiFi", (cfg.isWiFi ? "true" : "false"));
+    postData("isGPRS", (cfg.isGPRS ? "true" : "false"));
+    postData("SSID", cfg.ssid);
+    postData("PSWD", cfg.psk);
+    // postData("APN", cfg.apn);
+
+    // getUpdateAllData();
+
+    getUpdateData("APN");
 }
 
 void loop()

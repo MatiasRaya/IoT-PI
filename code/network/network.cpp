@@ -12,8 +12,6 @@ WiFiClient wifiClient;
 HttpClient *httpClient = nullptr;
 Thingsboard thingsboard;
 
-String token;
-
 bool initGSM()
 {
     return initGSM(NETWORK_APN);
@@ -385,85 +383,21 @@ bool getGPSLocation(float &latitude, float &longitude)
     return false;
 }
 
-bool getCoordinatesInternet(float &latitude, float &longitude)
-{
-    bool retval = false;
-
-    LOG_INFO(classNAME, "Getting coordinates from internet...");
-
-    if (httpClient == nullptr) {
-        if (WiFi.isConnected()) {
-            httpClient = new HttpClient(wifiClient, "ipinfo.io");
-        }
-        else {
-            httpClient = new HttpClient(gsmClient, "ipinfo.io");
-        }
-    }
-    
-    int errorCode = 0;
-    String url = "/json";
-
-    httpClient->beginRequest();
-    httpClient->get(url.c_str());
-    httpClient->sendHeader("Content-Type", "application/json");
-
-    httpClient->endRequest();
-
-    errorCode = httpClient->responseStatusCode();
-    LOG_INFO(classNAME, "HTTP response code: %d", errorCode);
-
-    if (errorCode == 200) {
-        String response = httpClient->responseBody();
-        LOG_INFO(classNAME, "HTTP response body: %s", response.c_str());
-
-        DynamicJsonDocument doc(1024);
-        DeserializationError error = deserializeJson(doc, response);
-
-        if (error) {
-            LOG_ERROR(classNAME, "Failed to parse JSON: %s", error.c_str());
-
-            httpClient->stop();
-            httpClient = nullptr;
-
-            return false;
-        }
-
-        String loc = doc["loc"].as<String>();
-        int commaIndex = loc.indexOf(',');
-
-        if (commaIndex != -1) {
-            latitude = loc.substring(0, commaIndex).toFloat();
-            longitude = loc.substring(commaIndex + 1).toFloat();
-        }
-
-        LOG_INFO(classNAME, "Latitude: %.6f, Longitude: %.6f", latitude, longitude);
-
-        retval = true;
-    }
-    else {
-        LOG_ERROR(classNAME, "Failed to get coordinates from internet");
-        LOG_ERROR(classNAME, "HTTP error: %d", errorCode);
-
-        retval = false;
-    }
-
-    httpClient->stop();
-    httpClient = nullptr;
-
-    return retval;
-}
-
 void setData(Thingsboard &tb) {
     if (tb.url.length() > 0) {
-        LOG_INFO(classNAME, "Thingsboard URL and Device ID configured");
-
         thingsboard.url = tb.url;
+        thingsboard.sn = tb.sn;
         thingsboard.keyProvisioning = tb.keyProvisioning;
         thingsboard.secretProvisioning = tb.secretProvisioning;
         thingsboard.token = tb.token;
+
+        LOG_INFO(classNAME, "Thingsboard URL: %s", thingsboard.url.c_str());
+        LOG_INFO(classNAME, "Thingsboard SN: %s", thingsboard.sn.c_str());
+        LOG_INFO(classNAME, "Thingsboard Key Provisioning: %s", thingsboard.keyProvisioning.c_str());
+        LOG_INFO(classNAME, "Thingsboard Secret Provisioning: %s", thingsboard.secretProvisioning.c_str());
     }
     else {
-        LOG_ERROR(classNAME, "Thingsboard URL and Device ID not configured");
+        LOG_ERROR(classNAME, "Thingsboard URL not configured");
     }
 }
 
@@ -481,43 +415,23 @@ String sendHttpRequest(String url, String method, String payload) {
 
     int errorCode = 0;
 
-    if (method == "GET") {
+    if (method == "POST") {
         httpClient->beginRequest();
-        httpClient->get(url.c_str());
         
-        httpClient->sendHeader("Content-Type", "application/json");
-        httpClient->sendHeader("Accept", "application/json");
+        httpClient->post(url.c_str(), "application/json", "");
 
-        LOG_INFO(classNAME, "Token length: %d", token.length());
-
-        if (token.length() > 0) {
-            httpClient->sendHeader("X-Authorization", "Bearer " + token);
-        }
+        httpClient->sendHeader("Content-Length", String(payload.length()));
+        httpClient->println(payload.c_str());
 
         httpClient->endRequest();
     }
-    else if (method == "POST") {
+    else if (method == "GET") {
         httpClient->beginRequest();
         
-        if (payload.indexOf("\"username\"") != -1) {
-            LOG_INFO(classNAME, "Payload contains username, using POST method");
+        httpClient->get(url.c_str());
 
-            httpClient->post(url.c_str(), "", payload.c_str());
-            httpClient->sendHeader("Content-Type", "application/json");
-            httpClient->sendHeader("Accept", "application/json");
-        }
-        else {
-            httpClient->post(url.c_str(), "application/json", "");
-            
-            LOG_INFO(classNAME, "Token length: %d", token.length());
-            
-            if (token.length() > 0) {
-                httpClient->sendHeader("X-Authorization", "Bearer " + token);
-            }
-
-            httpClient->sendHeader("Content-Length", String(payload.length()));
-            httpClient->println(payload.c_str());
-        }
+        httpClient->sendHeader("Content-Length", String(payload.length()));
+        httpClient->println(payload.c_str());
 
         httpClient->endRequest();
     }
@@ -536,14 +450,6 @@ String sendHttpRequest(String url, String method, String payload) {
         retval = httpClient->responseBody();
         LOG_INFO(classNAME, "HTTP response body: %s", retval.c_str());
         LOG_INFO(classNAME, "Response length: %d", retval.length());
-
-        int statusCode = httpClient->responseStatusCode();
-        LOG_INFO(classNAME, "HTTP status code: %d", statusCode);
-        
-        if (statusCode == 200 || statusCode == 201) {
-        }
-        else {
-        }
     }
     else {
         LOG_ERROR(classNAME, "Failed to send HTTP request");
@@ -558,143 +464,268 @@ String sendHttpRequest(String url, String method, String payload) {
     return retval;
 }
 
-// bool getToken() {
-//     bool retval = false;
+void getToken() {
+    LOG_INFO(classNAME, "Thingsboard SN: %s", thingsboard.sn.c_str());
+    LOG_INFO(classNAME, "Thingsboard Key Provisioning: %s", thingsboard.keyProvisioning.c_str());
+    LOG_INFO(classNAME, "Thingsboard Secret Provisioning: %s", thingsboard.secretProvisioning.c_str());
 
-//     if (thingsboard.username.length() > 0 && thingsboard.password.length() > 0) {
-//         LOG_INFO(classNAME, "Getting token from Thingsboard");
+    if (thingsboard.secretProvisioning.length() > 0 && thingsboard.keyProvisioning.length() > 0) {
+        LOG_INFO(classNAME, "Getting token from Thingsboard");
 
-//         String url = "/api/auth/login";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+        String url = "/api/v1/provision";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
         
-//         String payload = "{\"username\":\"" + thingsboard.username + "\",\"password\":\"" + thingsboard.password + "\"}";
-//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+        String payload = "{\"deviceName\":\"" + thingsboard.sn + "\",\"provisionDeviceKey\":\"" + thingsboard.keyProvisioning + "\",\"provisionDeviceSecret\":\"" + thingsboard.secretProvisioning + "\"}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
         
-//         String response = sendHttpRequest(url, "POST", payload);
+        String response = sendHttpRequest(url, "POST", payload);
 
-//         if (response.length() > 0) {
-//             LOG_INFO(classNAME, "Token received successfully");
+        if (response.length() > 0) {
+            LOG_INFO(classNAME, "Parsing response");
 
-//             int startIndex = response.indexOf("\"token\":\"") + 9;
-//             int endIndex = response.indexOf("\"", startIndex);
-//             token = response.substring(startIndex, endIndex);
+            StaticJsonDocument<256> doc;
+            DeserializationError error = deserializeJson(doc, response);
 
-//             if (token.length() > 0) {
-//                 LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
-//                 LOG_INFO(classNAME, "Token: %s", token.c_str());
+            if (error) {
+                LOG_ERROR(classNAME, "JSON parsing failed: %s", error.c_str());
+            }
 
-//                 retval = true;
-//             }
-//         }
-//         else {
-//             LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
-//         }
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Username and password not configured for Thingsboard");
-//     }
+            const char* status = doc["status"];
+            const char* credentials = doc["credentialsValue"];
 
-//     return retval;
-// }
+            if (String(status) == "SUCCESS" && credentials != nullptr) {
+                String token;
+                token = String(credentials);
+                LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
+                LOG_INFO(classNAME, "Token: %s", token.c_str());
 
-// void getDeviceData(String data) {
-//     if (token.length() > 0) {
-//         LOG_INFO(classNAME, "Getting device data from Thingsboard");
+                thingsboard.token = token;
 
-//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/values/attributes/SHARED_SCOPE";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
-//         String response = sendHttpRequest(url, "GET", "");
+                updateConfigField("TOKEN", token);
+            } else {
+                LOG_ERROR(classNAME, "Provisioning failed. Status: %s", status);
+            }
+        } else {
+            LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+        }
+    } else {
+        LOG_ERROR(classNAME, "key and secret provisioning not configured for Thingsboard");
+    }
+}
 
-//         if (response.length() > 0) {
-//             LOG_INFO(classNAME, "Device data received successfully");
-//             LOG_INFO(classNAME, "Response: %s", response.c_str());
+bool postData(const String& key, const String& newValue) {
+    LOG_DEBUG(classNAME, "Token: %s", thingsboard.token.c_str());
 
-//             // if ()
-//         }
-//         else {
-//             LOG_ERROR(classNAME, "Failed to get device data from Thingsboard");
-//         }
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
-//     }
-// }
+    if (thingsboard.token.c_str() != "null") {
+        String url = "/api/v1/" + thingsboard.token + "/attributes";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+        
+        String payload = "{\"" + key +"\":\"" + newValue + "\"}";
+        LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+        
+        String response = sendHttpRequest(url, "POST", payload);
 
-// void postDeviceData(String key, int value) {
-//     if (token.length() > 0) {
-//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+        // if (response.length() > 0) {
+        //     LOG_INFO(classNAME, "Parsing response");
 
-//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+        //     StaticJsonDocument<256> doc;
+        //     DeserializationError error = deserializeJson(doc, response);
 
-//         String payload = "{\""+ key + "\":" + String(value) + "}";
-//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+        //     if (error) {
+        //         LOG_ERROR(classNAME, "JSON parsing failed: %s", error.c_str());
+        //     }
 
-//         String response = sendHttpRequest(url, "POST", payload);
+        //     const char* status = doc["status"];
+        //     const char* credentials = doc["credentialsValue"];
 
-//         LOG_INFO(classNAME, "Device data posted successfully");
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
-//     }
-// }
+        //     if (String(status) == "SUCCESS" && credentials != nullptr) {
+        //         String token;
+        //         token = String(credentials);
+        //         LOG_INFO(classNAME, "Token stored successfully, length: %d", token.length());
+        //         LOG_INFO(classNAME, "Token: %s", token.c_str());
 
-// void postDeviceData(String key, float value) {
-//     if (token.length() > 0) {
-//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+        //         thingsboard.token = token;
 
-//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+        //         updateConfigField("TOKEN", token);
+        //     } else {
+        //         LOG_ERROR(classNAME, "Provisioning failed. Status: %s", status);
+        //     }
+        // } else {
+        //     LOG_ERROR(classNAME, "Failed to get token from Thingsboard");
+        // }
+    }
+    else {
+        LOG_ERROR(classNAME, "token not set");
+    }
 
-//         String payload = "{\""+ key + "\":" + String(value) + "}";
-//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+    return false;
+}
 
-//         String response = sendHttpRequest(url, "POST", payload);
+bool getUpdateAllData() {
+    LOG_DEBUG(classNAME, "Token: %s", thingsboard.token.c_str());
 
-//         LOG_INFO(classNAME, "Device data posted successfully");
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
-//     }
-// }
+    if (thingsboard.token.c_str() != "null") {
+        String url = "/api/v1/" + thingsboard.token + "/attributes";
+        LOG_INFO(classNAME, "URL: %s", url.c_str());
+        
+        String response = sendHttpRequest(url, "GET", "");
 
-// void postDeviceData(String key, String value) {
-//     if (token.length() > 0) {
-//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+        if (response.length() == 0) {
+            LOG_ERROR(classNAME, "Empty response from server");
+            return false;
+        }
 
-//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+        StaticJsonDocument<1024> doc;
+        DeserializationError error = deserializeJson(doc, response);
 
-//         String payload = "{\""+ key + "\":\"" + value + "\"}";
-//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+        if (error) {
+            LOG_ERROR(classNAME, "Failed to parse JSON: %s", error.c_str());
+            return false;
+        }
 
-//         String response = sendHttpRequest(url, "POST", payload);
+        JsonObject shared = doc["shared"];
+        if (shared.isNull()) {
+            LOG_ERROR(classNAME, "No 'shared' object in JSON");
+            return false;
+        }
 
-//         LOG_INFO(classNAME, "Device data posted successfully");
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
-//     }
-// }
+        Config cfg = readConfig();
 
-// void postDeviceData(String key, bool value) {
-//     if (token.length() > 0) {
-//         LOG_INFO(classNAME, "Posting device data to Thingsboard");
+        if (shared.containsKey("SN") && shared["SN"].as<String>() != cfg.sn)
+            updateConfigField("SN", shared["SN"].as<String>());
 
-//         String url = "/api/plugins/telemetry/DEVICE/" + thingsboard.deviceID + "/SHARED_SCOPE";
-//         LOG_INFO(classNAME, "URL: %s", url.c_str());
+        if (shared.containsKey("isWiFi"))
+            updateConfigField("isWiFi", shared["isWiFi"].as<String>() == "true");
 
-//         String payload = "{\""+ key + "\":" + String(value ? "true" : "false") + "}";
-//         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+        if (shared.containsKey("isGPRS"))
+            updateConfigField("isGPRS", shared["isGPRS"].as<String>() == "true");
 
-//         String response = sendHttpRequest(url, "POST", payload);
+        if (shared.containsKey("SSID") && shared["SSID"].as<String>() != cfg.ssid)
+            updateConfigField("SSID", shared["SSID"].as<String>());
 
-//         LOG_INFO(classNAME, "Device data posted successfully");
-//     }
-//     else {
-//         LOG_ERROR(classNAME, "Token not available for Thingsboard");
-//     }
-// }
+        if (shared.containsKey("PSWD") && shared["PSWD"].as<String>() != cfg.psk)
+            updateConfigField("PSK", shared["PSWD"].as<String>());
+
+        if (shared.containsKey("APN") && shared["APN"].as<String>() != cfg.apn)
+            updateConfigField("APN", shared["APN"].as<String>());
+
+        if (shared.containsKey("longitude") && shared["longitude"].as<float>() != cfg.longitude)
+            updateConfigField("LONGITUDE", shared["longitude"].as<float>());
+
+        if (shared.containsKey("latitude") && shared["latitude"].as<float>() != cfg.latitude)
+            updateConfigField("LATITUDE", shared["latitude"].as<float>());
+
+        if (shared.containsKey("flowMeter") && shared["flowMeter"].as<int>() != cfg.flowMeter)
+            updateConfigField("flowMeter", shared["flowMeter"].as<int>());
+
+        if (shared.containsKey("flowMeterTotal") && shared["flowMeterTotal"].as<int>() != cfg.flowMeterTotal)
+            updateConfigField("flowMeterTotal", shared["flowMeterTotal"].as<int>());
+
+        readAllConfig();
+        return true;
+    }
+    else {
+        LOG_ERROR(classNAME, "token not set");
+    }
+
+    return false;
+}
+
+bool getUpdateData(const String& key) {
+    if (thingsboard.token == "null" || thingsboard.token.length() == 0) {
+        LOG_ERROR(classNAME, "token not set");
+        return false;
+    }
+
+    String url = "/api/v1/" + thingsboard.token + "/attributes";
+    LOG_INFO(classNAME, "URL: %s", url.c_str());
+
+    String response = sendHttpRequest(url, "GET", "");
+    LOG_DEBUG(classNAME, "response: %s", response.c_str());
+
+    if (response.length() == 0) {
+        LOG_ERROR(classNAME, "Empty response from server");
+        return false;
+    }
+
+    StaticJsonDocument<1024> doc;
+    DeserializationError error = deserializeJson(doc, response);
+
+    if (error) {
+        LOG_ERROR(classNAME, "Failed to parse JSON: %s", error.c_str());
+        return false;
+    }
+
+    JsonObject shared = doc["shared"];
+    if (shared.isNull()) {
+        LOG_ERROR(classNAME, "No 'shared' object in JSON");
+        return false;
+    }
+
+    if (!shared.containsKey(key)) {
+        LOG_WARN(classNAME, "Key '%s' not found in response", key.c_str());
+        return false;
+    }
+
+    Config cfg = readConfig();
+
+    if (key == "SN") {
+        String val = shared["SN"].as<String>();
+        if (cfg.sn != val)
+            updateConfigField("SN", val);
+    }
+    else if (key == "isWiFi") {
+        bool val = shared["isWiFi"].as<String>() == "true";
+        if (cfg.isWiFi != val)
+            updateConfigField("isWiFi", val);
+    }
+    else if (key == "isGPRS") {
+        bool val = shared["isGPRS"].as<String>() == "true";
+        if (cfg.isGPRS != val)
+            updateConfigField("isGPRS", val);
+    }
+    else if (key == "SSID") {
+        String val = shared["SSID"].as<String>();
+        if (cfg.ssid != val)
+            updateConfigField("SSID", val);
+    }
+    else if (key == "PSWD") {
+        String val = shared["PSWD"].as<String>();
+        if (cfg.psk != val)
+            updateConfigField("PSK", val);
+    }
+    else if (key == "APN") {
+        String val = shared["APN"].as<String>();
+        if (cfg.apn != val)
+            updateConfigField("APN", val);
+    }
+    else if (key == "longitude") {
+        float val = shared["longitude"].as<float>();
+        if (cfg.longitude != val)
+            updateConfigField("LONGITUDE", val);
+    }
+    else if (key == "latitude") {
+        float val = shared["latitude"].as<float>();
+        if (cfg.latitude != val)
+            updateConfigField("LATITUDE", val);
+    }
+    else if (key == "flowMeter") {
+        int val = shared["flowMeter"].as<int>();
+        if (cfg.flowMeter != val)
+            updateConfigField("flowMeter", val);
+    }
+    else if (key == "flowMeterTotal") {
+        int val = shared["flowMeterTotal"].as<int>();
+        if (cfg.flowMeterTotal != val)
+            updateConfigField("flowMeterTotal", val);
+    }
+    else {
+        LOG_WARN(classNAME, "Key '%s' not handled", key.c_str());
+        return false;
+    }
+    
+    return true;
+}
 
 void syncRTCESP32() {
     configTime(-3 * 3600, 0, "pool.ntp.org");

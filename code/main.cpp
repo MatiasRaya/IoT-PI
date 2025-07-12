@@ -112,23 +112,31 @@ void setup()
     }
 
     cfg = readConfig();
+
+    readAllConfig();
+
     LOG_INFO(classNAME, "SN: %s", cfg.sn.c_str());
     LOG_INFO(classNAME, "APN: %s", cfg.apn.c_str());
     LOG_INFO(classNAME, "SSID: %s, PSK: %s", cfg.ssid.c_str(), cfg.psk.c_str());
-    LOG_INFO(classNAME, "URL: %s", cfg.url.c_str());
+    LOG_INFO(classNAME, "URL_THINGSBOARD: %s", cfg.url_thingsboard.c_str());
     LOG_INFO(classNAME, "Key Provisioning: %s", cfg.claveAprovisionamiento.c_str());
     LOG_INFO(classNAME, "Secret Provisioning: %s", cfg.secretoAprovisionamiento.c_str());
+    LOG_INFO(classNAME, "URL_MACS: %s", cfg.url_macs.c_str());
     LOG_INFO(classNAME, "Config read successfully");
 
     Thingsboard tb;
-    tb.url = cfg.url.c_str();
+    tb.url = cfg.url_thingsboard.c_str();
     tb.token = cfg.token.c_str();
     tb.sn = cfg.sn.c_str();
     tb.secretProvisioning = cfg.secretoAprovisionamiento.c_str();
     tb.keyProvisioning = cfg.claveAprovisionamiento.c_str();
-    setData(tb);
-    LOG_INFO(classNAME, "Thingsboard data set successfully");
-
+    
+    MACs macs;
+    macs.url = cfg.url_macs.c_str();
+    
+    setData(tb, macs);
+    LOG_INFO(classNAME, "Thingsboard and MAcs data set successfully");
+    
     delay(1000);
 
    if (cfg.apn.length() > 0) {
@@ -181,6 +189,19 @@ void setup()
 
     if (enableGSM || enableWiFi) {
         syncRTCESP32();
+
+        sendMAC();
+
+        postData("SN", cfg.sn);
+        postData("isWiFi", (cfg.isWiFi ? "true" : "false"));
+        postData("isGPRS", (cfg.isGPRS ? "true" : "false"));
+        postData("SSID", cfg.ssid);
+        postData("PSWD", cfg.psk);
+        // postData("APN", cfg.apn);
+
+        // getUpdateAllData();
+
+        getUpdateData("APN");
     }
     else {
         LOG_ERROR(classNAME, "No internet available for NTP sync");
@@ -207,17 +228,6 @@ void setup()
     }
 
     LOG_DEBUG(classNAME, "cfg.isWiFi: %s", (cfg.isWiFi ? "true" : "false"));
-
-    postData("SN", cfg.sn);
-    postData("isWiFi", (cfg.isWiFi ? "true" : "false"));
-    postData("isGPRS", (cfg.isGPRS ? "true" : "false"));
-    postData("SSID", cfg.ssid);
-    postData("PSWD", cfg.psk);
-    // postData("APN", cfg.apn);
-
-    // getUpdateAllData();
-
-    getUpdateData("APN");
 }
 
 void loop()

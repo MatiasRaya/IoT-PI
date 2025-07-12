@@ -11,6 +11,7 @@ WiFiClient wifiClient;
 
 HttpClient *httpClient = nullptr;
 Thingsboard thingsboard;
+MACs macs;
 
 bool initGSM()
 {
@@ -383,7 +384,7 @@ bool getGPSLocation(float &latitude, float &longitude)
     return false;
 }
 
-void setData(Thingsboard &tb) {
+void setData(Thingsboard &tb, MACs &mac) {
     if (tb.url.length() > 0) {
         thingsboard.url = tb.url;
         thingsboard.sn = tb.sn;
@@ -391,25 +392,29 @@ void setData(Thingsboard &tb) {
         thingsboard.secretProvisioning = tb.secretProvisioning;
         thingsboard.token = tb.token;
 
+        macs.url = mac.url;
+
         LOG_INFO(classNAME, "Thingsboard URL: %s", thingsboard.url.c_str());
         LOG_INFO(classNAME, "Thingsboard SN: %s", thingsboard.sn.c_str());
         LOG_INFO(classNAME, "Thingsboard Key Provisioning: %s", thingsboard.keyProvisioning.c_str());
         LOG_INFO(classNAME, "Thingsboard Secret Provisioning: %s", thingsboard.secretProvisioning.c_str());
+        
+        LOG_INFO(classNAME, "MACs URL: %s", macs.url.c_str());
     }
     else {
         LOG_ERROR(classNAME, "Thingsboard URL not configured");
     }
 }
 
-String sendHttpRequest(String url, String method, String payload) {
+String sendHttpRequest(String url, String endpoint, String method, String payload) {
     String retval = "";
 
     if (httpClient == nullptr) {
         if (WiFi.isConnected()) {
-            httpClient = new HttpClient(wifiClient, thingsboard.url.c_str());
+            httpClient = new HttpClient(wifiClient, url);
         }
         else {
-            httpClient = new HttpClient(gsmClient, thingsboard.url.c_str());
+            httpClient = new HttpClient(gsmClient, url);
         }
     }
 
@@ -418,7 +423,7 @@ String sendHttpRequest(String url, String method, String payload) {
     if (method == "POST") {
         httpClient->beginRequest();
         
-        httpClient->post(url.c_str(), "application/json", "");
+        httpClient->post(endpoint.c_str(), "application/json", "");
 
         httpClient->sendHeader("Content-Length", String(payload.length()));
         httpClient->println(payload.c_str());
@@ -428,7 +433,7 @@ String sendHttpRequest(String url, String method, String payload) {
     else if (method == "GET") {
         httpClient->beginRequest();
         
-        httpClient->get(url.c_str());
+        httpClient->get(endpoint.c_str());
 
         httpClient->sendHeader("Content-Length", String(payload.length()));
         httpClient->println(payload.c_str());
@@ -472,13 +477,13 @@ void getToken() {
     if (thingsboard.secretProvisioning.length() > 0 && thingsboard.keyProvisioning.length() > 0) {
         LOG_INFO(classNAME, "Getting token from Thingsboard");
 
-        String url = "/api/v1/provision";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
+        String endpoint = "/api/v1/provision";
+        LOG_INFO(classNAME, "ENDPOINT: %s", endpoint.c_str());
         
         String payload = "{\"deviceName\":\"" + thingsboard.sn + "\",\"provisionDeviceKey\":\"" + thingsboard.keyProvisioning + "\",\"provisionDeviceSecret\":\"" + thingsboard.secretProvisioning + "\"}";
         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
         
-        String response = sendHttpRequest(url, "POST", payload);
+        String response = sendHttpRequest(thingsboard.url, endpoint, "POST", payload);
 
         if (response.length() > 0) {
             LOG_INFO(classNAME, "Parsing response");
@@ -517,13 +522,13 @@ bool postData(const String& key, const String& newValue) {
     LOG_DEBUG(classNAME, "Token: %s", thingsboard.token.c_str());
 
     if (thingsboard.token.c_str() != "null") {
-        String url = "/api/v1/" + thingsboard.token + "/attributes";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
+        String endpoint = "/api/v1/" + thingsboard.token + "/attributes";
+        LOG_INFO(classNAME, "ENDPOINT: %s", endpoint.c_str());
         
         String payload = "{\"" + key +"\":\"" + newValue + "\"}";
         LOG_INFO(classNAME, "Payload: %s", payload.c_str());
         
-        String response = sendHttpRequest(url, "POST", payload);
+        String response = sendHttpRequest(thingsboard.url, endpoint, "POST", payload);
     }
     else {
         LOG_ERROR(classNAME, "token not set");
@@ -532,14 +537,46 @@ bool postData(const String& key, const String& newValue) {
     return false;
 }
 
+bool postMac(const String& key, const String& newValue) {
+    String endpoint = "/register";
+    LOG_INFO(classNAME, "ENDPOINT: %s", endpoint.c_str());
+    
+    String payload = "{\"" + key +"\":\"" + newValue + "\"}";
+    LOG_INFO(classNAME, "Payload: %s", payload.c_str());
+    
+    String response = sendHttpRequest(macs.url, endpoint, "POST", payload);
+
+    if (response.length() == 0) {
+        LOG_ERROR(classNAME, "Empty response from MAC server");
+        return false;
+    }
+
+    StaticJsonDocument<128> doc;
+    DeserializationError error = deserializeJson(doc, response);
+
+    if (error) {
+        LOG_ERROR(classNAME, "Failed to parse JSON response: %s", error.c_str());
+        return false;
+    }
+
+    const char* status = doc["status"];
+    if (status != nullptr && String(status) == "OK") {
+        LOG_INFO(classNAME, "MAC registration successful");
+        return true;
+    } else {
+        LOG_ERROR(classNAME, "MAC registration failed. Status: %s", status ? status : "null");
+        return false;
+    }
+}
+
 bool getUpdateAllData() {
     LOG_DEBUG(classNAME, "Token: %s", thingsboard.token.c_str());
 
     if (thingsboard.token.c_str() != "null") {
-        String url = "/api/v1/" + thingsboard.token + "/attributes";
-        LOG_INFO(classNAME, "URL: %s", url.c_str());
+        String endpoint = "/api/v1/" + thingsboard.token + "/attributes";
+        LOG_INFO(classNAME, "ENDPOINT: %s", endpoint.c_str());
         
-        String response = sendHttpRequest(url, "GET", "");
+        String response = sendHttpRequest(thingsboard.url, endpoint, "GET", "");
 
         if (response.length() == 0) {
             LOG_ERROR(classNAME, "Empty response from server");
@@ -608,10 +645,10 @@ bool getUpdateData(const String& key) {
         return false;
     }
 
-    String url = "/api/v1/" + thingsboard.token + "/attributes";
-    LOG_INFO(classNAME, "URL: %s", url.c_str());
+    String endpoint = "/api/v1/" + thingsboard.token + "/attributes";
+    LOG_INFO(classNAME, "URL: %s", endpoint.c_str());
 
-    String response = sendHttpRequest(url, "GET", "");
+    String response = sendHttpRequest(thingsboard.url, endpoint, "GET", "");
     LOG_DEBUG(classNAME, "response: %s", response.c_str());
 
     if (response.length() == 0) {
@@ -745,5 +782,16 @@ void syncRTCESP32() {
         setRTCDateTime(now);
     } else {
         LOG_INFO(classNAME, "RTC is already synchronized. No update needed.");
+    }
+}
+
+void sendMAC() {
+    String mac = WiFi.macAddress();
+    LOG_INFO(classNAME, "WiFi MAC Address: %s", mac.c_str());
+
+    if (!postMac("mac", mac)) {
+        LOG_ERROR(classNAME, "Failed to send MAC address");
+    } else {
+        LOG_INFO(classNAME, "MAC address sent successfully");
     }
 }

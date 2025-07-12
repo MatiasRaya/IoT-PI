@@ -12,6 +12,10 @@ struct Thingsboard {
     String keyProvisioning;
 };
 
+struct MACs {
+    String url;
+};
+
 bool initGSM();
 bool initGSM(const char* apn);
 
@@ -21,16 +25,15 @@ bool initWiFi(const char* ssid, const char* psk);
 bool initGPS();
 bool getGPSLocation(float& latitude, float& longitude);
 
-void setData(Thingsboard &tb);
+void setData(Thingsboard &tb, MACs &mac);
 
 void getToken();
 bool postData(const String& key, const String& newValue);
+bool postMac(const String& key, const String& newValue);
 bool getUpdateAllData();
 bool getUpdateData(const String& key);
-
-// void getDeviceData(String data);
-// void postDeviceData(String key, int value);
-// void postDeviceData(String key, float value);
-// void postDeviceData(String key, bool value);
+bool getMac();
 
 void syncRTCESP32();
+
+void sendMAC();

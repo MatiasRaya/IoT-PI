@@ -54,8 +54,8 @@ Config readConfig() {
         else if (line.startsWith("isToken=")) {
             config.isToken = (line.substring(8) == "true");
         }
-        else if (line.startsWith("URL=")) {
-            config.url = line.substring(4);
+        else if (line.startsWith("URL_THINGSBOARD=")) {
+            config.url_thingsboard = line.substring(16);
         }
         else if (line.startsWith("claveAprovisionamiento=")) {
             config.claveAprovisionamiento = line.substring(23);
@@ -65,6 +65,9 @@ Config readConfig() {
         }
         else if (line.startsWith("TOKEN=")) {
             config.token = line.substring(6);
+        }
+        else if (line.startsWith("URL_MACS=")) {
+            config.url_macs = line.substring(9);
         }
     }
 

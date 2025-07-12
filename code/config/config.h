@@ -15,10 +15,11 @@ struct Config {
     bool isWiFi;
     bool isGPRS;
     bool isToken;
-    String url;
+    String url_thingsboard;
     String claveAprovisionamiento;
     String secretoAprovisionamiento;
     String token;
+    String url_macs;
 };
 
 Config readConfig();

@@ -12,6 +12,7 @@ WiFiClient wifiClient;
 HttpClient *httpClient = nullptr;
 Thingsboard thingsboard;
 MACs macs;
+TimeStamp timeStamps;
 
 bool initGSM()
 {
@@ -204,8 +205,12 @@ bool initGSM(const char *apn)
                 uint32_t rep_data_packet_size;
                 uint32_t tripTime;
                 uint8_t TTL;
+
+                modem.sendAT("+CDNSGIP=\"www.google.com\"");
+                modem.waitResponse(1000);
+
                 for (int i = 0; i < 10; ++i) {
-                    int res = modem.ping("8.8.8.8", resolved_ip_addr, rep_data_packet_size, tripTime, TTL);
+                    int res = modem.ping("www.google.com", resolved_ip_addr, rep_data_packet_size, tripTime, TTL);
                     if (res == 1) {
                         Serial.printf("Reply from %s: bytes=%u time=%ums TTL=%u\n", resolved_ip_addr, rep_data_packet_size, tripTime, TTL);
                         retval = true;
@@ -384,7 +389,7 @@ bool getGPSLocation(float &latitude, float &longitude)
     return false;
 }
 
-void setData(Thingsboard &tb, MACs &mac) {
+void setData(Thingsboard &tb, MACs &mac, TimeStamp &timeStamp) {
     if (tb.url.length() > 0) {
         thingsboard.url = tb.url;
         thingsboard.sn = tb.sn;
@@ -393,6 +398,8 @@ void setData(Thingsboard &tb, MACs &mac) {
         thingsboard.token = tb.token;
 
         macs.url = mac.url;
+
+        timeStamps.url = timeStamp.url;
 
         LOG_INFO(classNAME, "Thingsboard URL: %s", thingsboard.url.c_str());
         LOG_INFO(classNAME, "Thingsboard SN: %s", thingsboard.sn.c_str());
@@ -412,39 +419,57 @@ String sendHttpRequest(String url, String endpoint, String method, String payloa
     if (httpClient == nullptr) {
         if (WiFi.isConnected()) {
             httpClient = new HttpClient(wifiClient, url);
+            LOG_DEBUG(classNAME, "WiFi Client");
         }
         else {
             httpClient = new HttpClient(gsmClient, url);
+            LOG_DEBUG(classNAME, "GSM Client");
         }
     }
 
+    LOG_INFO(classNAME, "Sending request to http://%s%s", url.c_str(), endpoint.c_str());
+
     int errorCode = 0;
 
+    httpClient->beginRequest();
+
     if (method == "POST") {
-        httpClient->beginRequest();
-        
-        httpClient->post(endpoint.c_str(), "application/json", "");
+        // httpClient->post(endpoint.c_str(), "application/json", "");
+        // httpClient->sendHeader("Content-Length", String(payload.length()));
+        // httpClient->println(payload.c_str());
 
-        httpClient->sendHeader("Content-Length", String(payload.length()));
-        httpClient->println(payload.c_str());
+        String request =
+            "POST " + endpoint + " HTTP/1.1\r\n" +
+            "Host: " + url + "\r\n" +
+            "User-Agent: Arduino/2.2.0\r\n" +
+            "Content-Type: application/json\r\n" +
+            "Content-Length: " + String(payload.length()) + "\r\n" +
+            "Connection: close\r\n\r\n" +
+            payload;
 
-        httpClient->endRequest();
+        httpClient->print(request);
     }
     else if (method == "GET") {
-        httpClient->beginRequest();
+        // httpClient->get(endpoint.c_str());
         
-        httpClient->get(endpoint.c_str());
-
-        httpClient->sendHeader("Content-Length", String(payload.length()));
-        httpClient->println(payload.c_str());
-
-        httpClient->endRequest();
+        String request =
+            "GET " + endpoint + " HTTP/1.1\r\n" +
+            "Host: " + url + "\r\n" +
+            "User-Agent: Arduino/2.2.0\r\n" +
+            "Connection: close\r\n\r\n";
+        httpClient->print(request);
     }
     else {
         LOG_ERROR(classNAME, "Unsupported HTTP method");
-        
+
+        httpClient->stop();
+        delete httpClient;
+        httpClient = nullptr;
+
         return "";
     }
+
+    httpClient->endRequest();
 
     errorCode = httpClient->responseStatusCode();
     LOG_INFO(classNAME, "HTTP response code: %d", errorCode);
@@ -464,6 +489,7 @@ String sendHttpRequest(String url, String endpoint, String method, String payloa
     }
 
     httpClient->stop();
+    delete httpClient;
     httpClient = nullptr;
 
     return retval;
@@ -736,53 +762,101 @@ bool getUpdateData(const String& key) {
 }
 
 void syncRTCESP32() {
-    configTime(-3 * 3600, 0, "pool.ntp.org");
+    // configTime(-3 * 3600, 0, "pool.ntp.org");
 
-    LOG_INFO(classNAME, "Waiting for NTP synchronization...");
-    time_t now = time(nullptr);
-    unsigned long start = millis();
-    while (now < 8 * 3600 * 2 && millis() - start < 10000) {
-        delay(500);
-        now = time(nullptr);
-    }
+    // LOG_INFO(classNAME, "Waiting for NTP synchronization...");
+    // time_t now = time(nullptr);
+    // unsigned long start = millis();
+    // while (now < 8 * 3600 * 2 && millis() - start < 10000) {
+    //     delay(500);
+    //     now = time(nullptr);
+    // }
 
-    if (now < 8 * 3600 * 2) {
-        LOG_ERROR(classNAME, "Failed to get time from NTP.");
-        return;
-    }
+    // if (now < 8 * 3600 * 2) {
+    //     LOG_ERROR(classNAME, "Failed to get time from NTP.");
+    //     return;
+    // }
 
-    struct tm *timeinfo = localtime(&now);
-    if (timeinfo) {
-        char buffer[30];
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-        LOG_DEBUG(classNAME, "System time (NTP): %s", buffer);
-    } else {
-        LOG_ERROR(classNAME, "System time is invalid.");
-        return;
-    }
+    // struct tm *timeinfo = localtime(&now);
+    // if (timeinfo) {
+    //     char buffer[30];
+    //     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    //     LOG_DEBUG(classNAME, "System time (NTP): %s", buffer);
+    // } else {
+    //     LOG_ERROR(classNAME, "System time is invalid.");
+    //     return;
+    // }
     
-    time_t utcNow = now - (3 * 3600);
+    // time_t utcNow = now - (3 * 3600);
     
-    DateTime rtcTime = getRTC();
-    time_t rtcEpoch = rtcTime.unixtime();
+    // DateTime rtcTime = getRTC();
+    // time_t rtcEpoch = rtcTime.unixtime();
     
-    LOG_DEBUG(classNAME, "Epoch NTP (UTC): %ld", utcNow);
-    LOG_DEBUG(classNAME, "Epoch RTC (UTC): %ld", rtcEpoch);
+    // LOG_DEBUG(classNAME, "Epoch NTP (UTC): %ld", utcNow);
+    // LOG_DEBUG(classNAME, "Epoch RTC (UTC): %ld", rtcEpoch);
 
-    long diffSeconds = abs(utcNow - rtcEpoch);
+    // long diffSeconds = abs(utcNow - rtcEpoch);
 
-    LOG_DEBUG(classNAME, "RTC time: %04d-%02d-%02d %02d:%02d:%02d",
-              rtcTime.year(), rtcTime.month(), rtcTime.day(),
-              rtcTime.hour(), rtcTime.minute(), rtcTime.second());
+    // LOG_DEBUG(classNAME, "RTC time: %04d-%02d-%02d %02d:%02d:%02d",
+    //           rtcTime.year(), rtcTime.month(), rtcTime.day(),
+    //           rtcTime.hour(), rtcTime.minute(), rtcTime.second());
 
-    LOG_INFO(classNAME, "RTC vs NTP time difference: %ld seconds", diffSeconds);
+    // LOG_INFO(classNAME, "RTC vs NTP time difference: %ld seconds", diffSeconds);
 
-    if (diffSeconds >= 3600) {
-        LOG_INFO(classNAME, "Time difference is too large, updating RTC...");
-        setRTCDateTime(now);
-    } else {
-        LOG_INFO(classNAME, "RTC is already synchronized. No update needed.");
-    }
+    // if (diffSeconds >= 3600) {
+    //     LOG_INFO(classNAME, "Time difference is too large, updating RTC...");
+    //     setRTCDateTime(now);
+    // } else {
+    //     LOG_INFO(classNAME, "RTC is already synchronized. No update needed.");
+    // }
+
+    String json = sendHttpRequest(timeStamps.url.c_str(), "", "GET", "");
+    LOG_INFO(classNAME, "Response NTP: %s", json.c_str());
+
+    // StaticJsonDocument<1024> doc;
+    // DeserializationError error = deserializeJson(doc, json);
+    // if (error) {
+    //     LOG_ERROR(classNAME, "Failed to parse NTP JSON: %s", error.c_str());
+    //     return;
+    // }
+
+    // if (!doc.containsKey("unixtime")) {
+    //     LOG_ERROR(classNAME, "NTP JSON missing 'unixtime' field");
+    //     return;
+    // }
+
+    // time_t ntpEpoch = doc["unixtime"];
+    // struct timeval now = { .tv_sec = ntpEpoch, .tv_usec = 0 };
+    
+    // settimeofday(&now, nullptr);
+    // LOG_INFO(classNAME, "System time updated from NTP (epoch: %ld)", ntpEpoch);
+
+    // time_t sysTime = time(nullptr);
+    // struct tm* timeinfo = localtime(&sysTime);
+    // if (timeinfo) {
+    //     char buffer[30];
+    //     strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+    //     LOG_DEBUG(classNAME, "System time (local): %s", buffer);
+    // }
+
+    // DateTime rtcTime = getRTC();
+    // time_t rtcEpoch = rtcTime.unixtime();
+
+    // LOG_DEBUG(classNAME, "Epoch RTC (UTC): %ld", rtcEpoch);
+
+    // long diffSeconds = abs((ntpEpoch - 3 * 3600) - rtcEpoch);
+    // LOG_DEBUG(classNAME, "RTC time: %04d-%02d-%02d %02d:%02d:%02d",
+    //           rtcTime.year(), rtcTime.month(), rtcTime.day(),
+    //           rtcTime.hour(), rtcTime.minute(), rtcTime.second());
+
+    // LOG_INFO(classNAME, "RTC vs NTP time difference: %ld seconds", diffSeconds);
+
+    // if (diffSeconds >= 3600) {
+    //     LOG_INFO(classNAME, "Time difference is too large, updating RTC...");
+    //     setRTCDateTime(ntpEpoch);
+    // } else {
+    //     LOG_INFO(classNAME, "RTC is already synchronized. No update needed.");
+    // }
 }
 
 void sendMAC() {

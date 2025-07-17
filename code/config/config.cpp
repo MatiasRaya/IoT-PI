@@ -69,6 +69,9 @@ Config readConfig() {
         else if (line.startsWith("URL_MACS=")) {
             config.url_macs = line.substring(9);
         }
+        else if (line.startsWith("URL_TIME=")) {
+            config.url_time = line.substring(9);
+        }
     }
 
     file.close();

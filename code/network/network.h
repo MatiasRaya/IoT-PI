@@ -16,6 +16,10 @@ struct MACs {
     String url;
 };
 
+struct TimeStamp {
+    String url;
+};
+
 bool initGSM();
 bool initGSM(const char* apn);
 
@@ -25,7 +29,7 @@ bool initWiFi(const char* ssid, const char* psk);
 bool initGPS();
 bool getGPSLocation(float& latitude, float& longitude);
 
-void setData(Thingsboard &tb, MACs &mac);
+void setData(Thingsboard &tb, MACs &mac, TimeStamp &timeStamp);
 
 void getToken();
 bool postData(const String& key, const String& newValue);

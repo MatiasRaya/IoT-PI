@@ -1,4 +1,4 @@
-SN=0001-00001
+SN=0001-00002
 APN=igprs.claro.com.ar
 longitude=0.000000
 latitude=0.000000
@@ -13,3 +13,4 @@ claveAprovisionamiento=fq4tydh3cmsi8wde8rt2
 secretoAprovisionamiento=n8pa8amzw9rwrjkp6mqm
 TOKEN=null
 URL_MACS=macs.iotmrpicomp.com
+URL_TIME=time.iotmrpicomp.com

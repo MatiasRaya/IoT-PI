@@ -20,6 +20,7 @@ struct Config {
     String secretoAprovisionamiento;
     String token;
     String url_macs;
+    String url_time;
 };
 
 Config readConfig();

@@ -133,8 +133,11 @@ void setup()
     
     MACs macs;
     macs.url = cfg.url_macs.c_str();
+
+    TimeStamp timeStamp;
+    timeStamp.url = cfg.url_time.c_str();
     
-    setData(tb, macs);
+    setData(tb, macs, timeStamp);
     LOG_INFO(classNAME, "Thingsboard and MAcs data set successfully");
     
     delay(1000);
@@ -149,17 +152,17 @@ void setup()
         enableGSM = initGSM();
     }
 
-    enableGPS = initGPS();
+    // enableGPS = initGPS();
 
-    if (enableGPS) {
-        LOG_INFO(classNAME, "GPS initialized successfully");
+    // if (enableGPS) {
+    //     LOG_INFO(classNAME, "GPS initialized successfully");
 
-        enableGPS = true;
-    } else {
-        LOG_ERROR(classNAME, "GPS initialization failed");
+    //     enableGPS = true;
+    // } else {
+    //     LOG_ERROR(classNAME, "GPS initialization failed");
 
-        enableGPS = false;
-    }
+    //     enableGPS = false;
+    // }
 
     if (enableGSM) {
         LOG_INFO(classNAME, "GSM initialized successfully");
@@ -192,16 +195,16 @@ void setup()
 
         sendMAC();
 
-        postData("SN", cfg.sn);
-        postData("isWiFi", (cfg.isWiFi ? "true" : "false"));
-        postData("isGPRS", (cfg.isGPRS ? "true" : "false"));
-        postData("SSID", cfg.ssid);
-        postData("PSWD", cfg.psk);
+        // postData("SN", cfg.sn);
+        // postData("isWiFi", (cfg.isWiFi ? "true" : "false"));
+        // postData("isGPRS", (cfg.isGPRS ? "true" : "false"));
+        // postData("SSID", cfg.ssid);
+        // postData("PSWD", cfg.psk);
         // postData("APN", cfg.apn);
 
         // getUpdateAllData();
 
-        getUpdateData("APN");
+        // getUpdateData("APN");
     }
     else {
         LOG_ERROR(classNAME, "No internet available for NTP sync");
@@ -221,13 +224,13 @@ void setup()
         updateConfigField("isWiFi", false);
     }
 
-    cfg = readConfig();
+    // cfg = readConfig();
 
-    if (cfg.token == "null") {
-        getToken();
-    }
+    // if (cfg.token == "null") {
+    //     getToken();
+    // }
 
-    LOG_DEBUG(classNAME, "cfg.isWiFi: %s", (cfg.isWiFi ? "true" : "false"));
+    // LOG_DEBUG(classNAME, "cfg.isWiFi: %s", (cfg.isWiFi ? "true" : "false"));
 }
 
 void loop()
